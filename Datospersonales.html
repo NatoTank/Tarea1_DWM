@@ -1,46 +1,196 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <title>Bootstrap Example</title>
+  <title>Chocomania - Datos Personales</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .choco-header {
+      background-color: #7B3F00;
+      color: white;
+      padding: 15px 0;
+      margin-bottom: 30px;
+    }
+    .choco-logo {
+      font-weight: bold;
+      font-size: 1.8rem;
+    }
+    .data-card {
+      max-width: 500px;
+      margin: 0 auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      border: none;
+    }
+    .card-header {
+      background-color: #7B3F00;
+      color: white;
+      border-radius: 10px 10px 0 0 !important;
+      text-align: center;
+      padding: 15px;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .btn-choco {
+      background-color: #7B3F00;
+      color: white;
+      width: 100%;
+      padding: 10px;
+      font-weight: bold;
+    }
+    .btn-choco:hover {
+      background-color: #5a2e00;
+      color: white;
+    }
+    .form-control:focus {
+      border-color: #7B3F00;
+      box-shadow: 0 0 0 0.25rem rgba(123, 63, 0, 0.25);
+    }
+    .alert-danger {
+      display: none;
+    }
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-top: 20px;
+      margin-bottom: 15px;
+      color: #7B3F00;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
-  
-<div class="container">
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
+  <div class="choco-header text-center">
+    <div class="container">
+      <div class="choco-logo">Chocomania</div>
+      <div>https://www.Chocomania.cl</div>
+    </div>
   </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-</div>
 
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card data-card">
+          <div class="card-header">
+            DATOS PERSONALES
+          </div>
+          <div class="card-body p-4">
+            <form id="personalDataForm">
+              <div class="section-title">NOMBRE</div>
+              <div class="mb-3">
+                <input type="text" class="form-control" id="nombre" placeholder="Ava" required>
+              </div>
+              
+              <div class="section-title">DIRECCIÓN</div>
+              <div class="mb-3">
+                <input type="text" class="form-control" id="direccion" placeholder="Tomates 3990" required>
+              </div>
+              
+              <div class="section-title">COMUNA</div>
+              <div class="mb-3">
+                <input type="text" class="form-control" id="comuna" placeholder="Rufosa" required>
+              </div>
+              
+              <div class="section-title">TELÉFONO</div>
+              <div class="mb-3">
+                <input type="tel" class="form-control" id="telefono" placeholder="928976754" required>
+              </div>
+              
+              <div class="alert alert-danger mt-3" id="errorMessage" role="alert">
+                Faltan datos obligatorios
+              </div>
+              
+              <button type="submit" class="btn btn-choco mt-4">ENVIAR</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="successModalLabel">Datos Guardados</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Sus datos han sido guardados correctamente
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-choco" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('personalDataForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const nombre = document.getElementById('nombre').value;
+      const direccion = document.getElementById('direccion').value;
+      const comuna = document.getElementById('comuna').value;
+      const telefono = document.getElementById('telefono').value;
+      const errorMessage = document.getElementById('errorMessage');
+      
+      
+      errorMessage.style.display = 'none';
+      
+      
+      if (!nombre || !direccion || !comuna || !telefono) {
+        errorMessage.textContent = 'Faltan datos obligatorios';
+        errorMessage.style.display = 'block';
+        return;
+      }
+      
+      
+      const phoneRegex = /^[0-9+-\s()]{8,}$/;
+      if (!phoneRegex.test(telefono)) {
+        errorMessage.textContent = 'El número de teléfono no es válido';
+        errorMessage.style.display = 'block';
+        return;
+      }
+      
+      
+      setTimeout(function() {
+        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+        successModal.show();
+        
+        
+        console.log('Datos guardados:', {
+          nombre: nombre,
+          direccion: direccion,
+          comuna: comuna,
+          telefono: telefono
+        });
+      }, 500);
+    });
+
+    
+    document.getElementById('telefono').addEventListener('input', function() {
+      
+      let value = this.value.replace(/\D/g, '');
+      
+      
+      if (value.length === 9) {
+        value = value.replace(/(\d{1})(\d{4})(\d{4})/, '$1 $2 $3');
+      }
+      
+      this.value = value;
+    });
+  </script>
 </body>
 </html>
