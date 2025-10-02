@@ -1,34 +1,222 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <title>Bootstrap Example</title>
+  <title>Chocomania - Registro</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .choco-header {
+      background-color: #7B3F00;
+      color: white;
+      padding: 15px 0;
+      margin-bottom: 30px;
+    }
+    .choco-logo {
+      font-weight: bold;
+      font-size: 1.8rem;
+    }
+    .registration-card {
+      max-width: 450px;
+      margin: 0 auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      border: none;
+    }
+    .card-header {
+      background-color: #7B3F00;
+      color: white;
+      border-radius: 10px 10px 0 0 !important;
+      text-align: center;
+      padding: 15px;
+      font-weight: bold;
+    }
+    .btn-choco {
+      background-color: #7B3F00;
+      color: white;
+      width: 100%;
+      padding: 10px;
+    }
+    .btn-choco:hover {
+      background-color: #5a2e00;
+      color: white;
+    }
+    .form-control:focus {
+      border-color: #7B3F00;
+      box-shadow: 0 0 0 0.25rem rgba(123, 63, 0, 0.25);
+    }
+    .alert-danger {
+      display: none;
+    }
+    .password-info {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+    .password-strength {
+      height: 5px;
+      margin-top: 5px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+    .strength-weak {
+      background-color: #dc3545;
+      width: 25%;
+    }
+    .strength-medium {
+      background-color: #ffc107;
+      width: 50%;
+    }
+    .strength-strong {
+      background-color: #28a745;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
-  
-<div class="container">
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
+  <div class="choco-header text-center">
+    <div class="container">
+      <div class="choco-logo">Chocomania</div>
+      <div>https://www.Chocomania.cl</div>
+    </div>
   </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-  <div class="row">
-    <div class="col-12 d-flex justify-content-start"></div>
-  </div>
-</div>
 
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card registration-card">
+          <div class="card-header">
+            REGISTRAR
+          </div>
+          <div class="card-body p-4">
+            <form id="registrationForm">
+              <div class="mb-3">
+                <label for="email" class="form-label">USUARIO</label>
+                <input type="email" class="form-control" id="email" placeholder="anag@example.com" required>
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">CONTRASEÑA</label>
+                <input type="password" class="form-control" id="password" placeholder="********" required>
+                <div class="password-strength" id="passwordStrength"></div>
+                <div class="password-info mt-1">
+                  La contraseña debe tener al menos 8 caracteres, incluyendo una letra mayúscula y un número.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">CONFIRMAR CONTRASEÑA</label>
+                <input type="password" class="form-control" id="confirmPassword" placeholder="********" required>
+              </div>
+              <div class="alert alert-danger mt-3" id="errorMessage" role="alert">
+                El Email ya está en uso
+              </div>
+              <button type="submit" class="btn btn-choco mt-3">Registrar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="successModalLabel">Registro Exitoso</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Tu cuenta ha sido creada exitosamente. Ahora puedes realizar compras en Chocomania.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-choco" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('password').addEventListener('input', function() {
+      const password = this.value;
+      const strengthBar = document.getElementById('passwordStrength');
+      
+      // Reset strength bar
+      strengthBar.className = 'password-strength';
+      
+      if (password.length === 0) {
+        return;
+      }
+      
+      // Calculate password strength
+      let strength = 0;
+      
+      // Length check
+      if (password.length >= 8) strength += 1;
+      
+      // Contains uppercase letter
+      if (/[A-Z]/.test(password)) strength += 1;
+      
+      // Contains number
+      if (/\d/.test(password)) strength += 1;
+      
+      // Update strength bar
+      if (strength === 1) {
+        strengthBar.classList.add('strength-weak');
+      } else if (strength === 2) {
+        strengthBar.classList.add('strength-medium');
+      } else if (strength >= 3) {
+        strengthBar.classList.add('strength-strong');
+      }
+    });
+
+    document.getElementById('registrationForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const errorMessage = document.getElementById('errorMessage');
+      
+      // Reset error message
+      errorMessage.style.display = 'none';
+      
+      // Check if passwords match
+      if (password !== confirmPassword) {
+        errorMessage.textContent = 'Las contraseñas no coinciden';
+        errorMessage.style.display = 'block';
+        return;
+      }
+      
+      // Check password strength - simplified requirements
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+      if (!passwordRegex.test(password)) {
+        errorMessage.textContent = 'La contraseña debe tener al menos 8 caracteres, una letra mayúscula y un número';
+        errorMessage.style.display = 'block';
+        return;
+      }
+      
+      // Simulate registration process
+      // In a real application, this would be an API call
+      const registeredEmails = ['anag@example.com', 'test@test.com', 'user@domain.com'];
+      
+      if (registeredEmails.includes(email)) {
+        // Email already in use
+        errorMessage.textContent = 'El Email ya está en uso';
+        errorMessage.style.display = 'block';
+      } else {
+        // Successful registration
+        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+        successModal.show();
+        
+        // Reset form
+        document.getElementById('registrationForm').reset();
+        document.getElementById('passwordStrength').className = 'password-strength';
+      }
+    });
+  </script>
 </body>
 </html>
