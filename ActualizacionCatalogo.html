@@ -1,24 +1,405 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <title>Bootstrap Example</title>
+  <title>Chocomanía - Catálogo con Stock</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .choco-header {
+      background-color: #7B3F00;
+      color: white;
+      padding: 15px 0;
+      margin-bottom: 30px;
+    }
+    .choco-logo {
+      font-weight: bold;
+      font-size: 1.8rem;
+    }
+    .product-card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      margin-bottom: 25px;
+      height: 100%;
+      overflow: hidden;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .product-image-container {
+      height: 200px;
+      border-radius: 10px 10px 0 0;
+      overflow: hidden;
+      position: relative;
+      background-color: #f5e6d3;
+    }
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+      background-color: white;
+    }
+    .product-card:hover .product-image {
+      transform: scale(1.05);
+    }
+    .product-title {
+      color: #7B3F00;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .product-price {
+      font-weight: bold;
+      color: #28a745;
+      font-size: 1.2rem;
+    }
+    .product-category {
+      font-size: 0.9rem;
+      color: #6c757d;
+      margin-bottom: 10px;
+    }
+    .stock-info {
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    .stock-available {
+      color: #28a745;
+    }
+    .stock-low {
+      color: #ffc107;
+    }
+    .stock-out {
+      color: #dc3545;
+    }
+    .btn-choco {
+      background-color: #7B3F00;
+      color: white;
+      border: none;
+    }
+    .btn-choco:hover {
+      background-color: #5a2e00;
+      color: white;
+    }
+    .btn-choco:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .catalog-title {
+      color: #7B3F00;
+      font-weight: bold;
+      margin-bottom: 25px;
+      text-align: center;
+      border-bottom: 2px solid #7B3F00;
+      padding-bottom: 10px;
+    }
+    .filter-section {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .stock-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+    }
+    .artist-info {
+      font-size: 0.8rem;
+      color: #6c757d;
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #dee2e6;
+    }
+    .card-body {
+      padding: 20px;
+    }
+    .image-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #7B3F00;
+      font-size: 3rem;
+      background-color: #f5e6d3;
+    }
+  </style>
 </head>
 <body>
-  
-<div class="row">
-  <div class="col-4 d-flex justify-content-center"></div>
-  <div class="col-4 d-flex justify-content-center"></div>
-  <div class="col-4 d-flex justify-content-center"></div>
-</div>
+  <div class="choco-header text-center">
+    <div class="container">
+      <div class="choco-logo">Chocomania</div>
+      <div>https://www.Chocomania.cl</div>
+    </div>
+  </div>
 
-<div class="row">
-  <div class="col-4 d-flex justify-content-center"></div>
-  <div class="col-4 d-flex justify-content-center"></div>
-  <div class="col-4 d-flex justify-content-center"></div>
-</div>
+  <div class="container">
+    <h1 class="catalog-title">CATÁLOGO CON STOCK EN TIEMPO REAL</h1>
+    
+    <!-- Filtros -->
+    <div class="filter-section">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="input-group mb-3">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar chocolates..." id="searchInput">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <select class="form-select" id="categoryFilter">
+            <option value="">Todas las categorías</option>
+            <option value="con leche">Chocolate con Leche</option>
+            <option value="blanco">Chocolate Blanco</option>
+            <option value="Bombones">Bombones</option>
+            <option value="Alfajores">Alfajores</option>
+            <option value="Macaroons">Macaroons</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="stockFilter">
+            <option value="">Todo el stock</option>
+            <option value="available">Disponible</option>
+            <option value="low">Stock bajo</option>
+            <option value="out">Agotado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Catálogo de productos -->
+    <div id="productsCatalog">
+      <div class="row" id="productsContainer">
+        <!-- Los productos se cargarán aquí dinámicamente -->
+      </div>
+    </div>
+    
+    <!-- Mensaje cuando no hay productos -->
+    <div id="emptyCatalog" class="empty-catalog text-center py-5" style="display: none;">
+      <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+      <h3 class="text-muted">No hay productos disponibles</h3>
+      <p class="text-muted">Lo sentimos, actualmente no tenemos productos en nuestro catálogo.</p>
+    </div>
+    
+    <!-- Información del artista -->
+    <div class="artist-info">
+      <p><strong>Artista:</strong> APPC:delogo</p>
+      <p>cónsar@mocconanilla.com.br, tamaño: 1.0x10000%</p>
+    </div>
+  </div>
+
+  <script>
+    // MISMO CATÁLOGO ORIGINAL con información de stock agregada
+    const products = [
+      { 
+        id: 1, 
+        name: "Chocolate Avenida", 
+        price: 5000, 
+        category: "con leche", 
+        image: "ChocolateAvenida.png",
+        stock: 10,  // Disponible: 10
+        code: "CA001"
+      },
+      { 
+        id: 2, 
+        name: "Chocolate con Leche", 
+        price: 4000, 
+        category: "con leche", 
+        image: "ChocolateLeche.png",
+        stock: 5,   // Disponible: 5
+        code: "CL002"
+      },
+      { 
+        id: 3, 
+        name: "Chocolate Blanco", 
+        price: 6000, 
+        category: "blanco", 
+        image: "ChocolateBlanco.png",
+        stock: 0,   // Agotado
+        code: "CB003"
+      },
+      { 
+        id: 4, 
+        name: "Chocolate con Almendras", 
+        price: 7000, 
+        category: "con leche", 
+        image: "ChocolateAlmendras.png",
+        stock: 3,   // Stock bajo
+        code: "CA004"
+      },
+      { 
+        id: 5, 
+        name: "Bombones Chocolate Negro", 
+        price: 8000, 
+        category: "Bombones", 
+        image: "Bombones.png",
+        stock: 15,  // Disponible
+        code: "BN005"
+      },
+      { 
+        id: 6, 
+        name: "Bombones Chocolate Blanco", 
+        price: 5000, 
+        category: "Bombones", 
+        image: "BombonesBlanco.png",
+        stock: 0,   // Agotado
+        code: "BB006"
+      },
+      { 
+        id: 7, 
+        name: "Alfajores", 
+        price: 5500, 
+        category: "Alfajores", 
+        image: "Alfajores.png",
+        stock: 8,   // Disponible
+        code: "AL007"
+      },
+      { 
+        id: 8, 
+        name: "Macaroons", 
+        price: 7500, 
+        category: "Macaroons", 
+        image: "Macaroons.png",
+        stock: 2,   // Stock bajo
+        code: "MC008"
+      },
+    ];
+
+    // Variables para filtros
+    let filteredProducts = [...products];
+
+    // Función para formatear precio en CLP
+    function formatPrice(price) {
+      return new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 0
+      }).format(price);
+    }
+
+    // Función para determinar el estado del stock
+    function getStockStatus(stock) {
+      if (stock === 0) {
+        return { text: "Agotado", class: "stock-out", badge: "danger" };
+      } else if (stock < 5) {
+        return { text: `Solo ${stock} disponibles`, class: "stock-low", badge: "warning" };
+      } else {
+        return { text: `Disponible: ${stock}`, class: "stock-available", badge: "success" };
+      }
+    }
+
+    // Función para renderizar productos
+    function renderProducts() {
+      const container = document.getElementById('productsContainer');
+      container.innerHTML = '';
+      
+      if (filteredProducts.length === 0) {
+        document.getElementById('productsCatalog').style.display = 'none';
+        document.getElementById('emptyCatalog').style.display = 'block';
+        return;
+      }
+      
+      document.getElementById('productsCatalog').style.display = 'block';
+      document.getElementById('emptyCatalog').style.display = 'none';
+      
+      // Crear tarjetas de productos
+      filteredProducts.forEach(product => {
+        const stockStatus = getStockStatus(product.stock);
+        const col = document.createElement('div');
+        col.className = 'col-md-4 col-sm-6 mb-4';
+        
+        col.innerHTML = `
+          <div class="card product-card">
+            <div class="product-image-container">
+              <span class="stock-badge badge bg-${stockStatus.badge}">${stockStatus.text}</span>
+              ${product.image ? 
+                `<img class="product-image" src="${product.image}" alt="${product.name}">` : 
+                `<div class="image-placeholder"><i class="fas fa-cube"></i></div>`
+              }
+            </div>
+            <div class="card-body">
+              <h5 class="product-title">${product.name}</h5>
+              <div class="product-category">${product.category} - Código: ${product.code}</div>
+              <div class="product-price">${formatPrice(product.price)}</div>
+              <div class="stock-info ${stockStatus.class}">
+                <i class="fas fa-${product.stock > 0 ? 'check-circle' : 'times-circle'}"></i> ${stockStatus.text}
+              </div>
+              <button class="btn btn-choco mt-2 w-100" ${product.stock === 0 ? 'disabled' : ''}>
+                <i class="fas fa-shopping-cart"></i> 
+                ${product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
+              </button>
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(col);
+      });
+    }
+
+    // Función para filtrar productos
+    function filterProducts() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      const stockFilter = document.getElementById('stockFilter').value;
+      
+      filteredProducts = products.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
+                             product.code.toLowerCase().includes(searchTerm);
+        const matchesCategory = !categoryFilter || product.category === categoryFilter;
+        
+        let matchesStock = true;
+        if (stockFilter === "available") {
+          matchesStock = product.stock > 0;
+        } else if (stockFilter === "low") {
+          matchesStock = product.stock > 0 && product.stock < 5;
+        } else if (stockFilter === "out") {
+          matchesStock = product.stock === 0;
+        }
+        
+        return matchesSearch && matchesCategory && matchesStock;
+      });
+      
+      renderProducts();
+    }
+
+    // Simulación de actualización de stock en tiempo real
+    function simulateStockUpdate() {
+      // Cada 10 segundos, actualizamos aleatoriamente el stock de algunos productos
+      setInterval(() => {
+        const randomProductIndex = Math.floor(Math.random() * products.length);
+        const changeType = Math.random() > 0.5 ? 1 : -1;
+        const changeAmount = Math.floor(Math.random() * 3) + 1;
+        
+        const newStock = products[randomProductIndex].stock + (changeType * changeAmount);
+        products[randomProductIndex].stock = Math.max(0, newStock);
+        
+        // Si hay filtros aplicados, actualizamos la vista
+        filterProducts();
+        
+        console.log(`Stock actualizado: ${products[randomProductIndex].name} - Nuevo stock: ${products[randomProductIndex].stock}`);
+      }, 10000);
+    }
+
+    // Inicializar eventos
+    document.getElementById('searchInput').addEventListener('input', filterProducts);
+    document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+    document.getElementById('stockFilter').addEventListener('change', filterProducts);
+
+    // Inicializar catálogo
+    renderProducts();
+    
+    // Iniciar simulación de actualización de stock
+    simulateStockUpdate();
+  </script>
 </body>
 </html>

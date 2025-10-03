@@ -1,75 +1,443 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Información de Llegada</title>
+    <title>Seguimiento de Pedido - Chocomania</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --choco-dark: #5D4037;
+            --choco-medium: #8D6E63;
+            --choco-light: #D7CCC8;
+            --choco-cream: #FFFFFF;
+            --choco-gold: #FFB300;
+            --choco-danger: #E65100;
+        }
+        
+        body {
+            background-color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(93, 64, 55, 0.1);
+            border: none;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+            background: white;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .card-header {
+            background: linear-gradient(135deg, var(--choco-dark), var(--choco-medium));
+            color: white;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-dispatched {
+            background-color: var(--choco-light);
+            color: var(--choco-dark);
+        }
+        .status-transit {
+            background-color: #E8F5E8;
+            color: #2E7D32;
+        }
+        .status-delayed {
+            background-color: #FFEBEE;
+            color: var(--choco-danger);
+        }
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        .icon-dispatched {
+            background-color: var(--choco-light);
+            color: var(--choco-dark);
+        }
+        .icon-transit {
+            background-color: #E8F5E8;
+            color: #2E7D32;
+        }
+        .icon-delayed {
+            background-color: #FFEBEE;
+            color: var(--choco-danger);
+        }
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--choco-light);
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--choco-medium);
+        }
+        .timeline-item.active .timeline-dot {
+            background-color: var(--choco-gold);
+            box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.3);
+        }
+        .timeline-item.delayed .timeline-dot {
+            background-color: var(--choco-danger);
+            box-shadow: 0 0 0 3px rgba(230, 81, 0, 0.3);
+        }
+        .order-title {
+            color: var(--choco-dark);
+            font-weight: 700;
+        }
+        .time-estimate {
+            font-weight: 600;
+            color: var(--choco-dark);
+        }
+        .time-delayed {
+            color: var(--choco-danger);
+            text-decoration: line-through;
+        }
+        .subject-line {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--choco-dark);
+        }
+        .driver-info {
+            background: linear-gradient(135deg, var(--choco-medium), var(--choco-dark));
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid var(--choco-gold);
+        }
+        .delay-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--choco-danger);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        .btn-choco {
+            background: linear-gradient(135deg, var(--choco-gold), var(--choco-danger));
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 600;
+        }
+        .btn-choco:hover {
+            background: linear-gradient(135deg, var(--choco-danger), var(--choco-gold));
+            color: white;
+            transform: translateY(-1px);
+        }
+        .choco-header {
+            background: linear-gradient(135deg, var(--choco-dark), var(--choco-medium));
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .choco-divider {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--choco-gold), transparent);
+            margin: 15px 0;
+        }
+        .email-preview {
+            background: #f8f9fa;
+            border-left: 4px solid var(--choco-gold);
+            border-radius: 8px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--choco-gold), var(--choco-danger));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-align: center;
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
+    <div class="container mt-4 mb-5">
         <div class="row justify-content-center">
             <div class="col-12 col-md-10 col-lg-8">
-                <!-- Header -->
-                <div class="row mb-4">
-                    <div class="col-12 text-center"></div>
+                <!-- Header con colores Chocomania -->
+                <div class="choco-header">
+                    <div class="logo-container">
+                        <!-- Logo de Chocomania -->
+                        <img src="CHOLATERIA CHOCOMANIA LOGO.png" alt="Chocomania Logo" style="height: 80px; width: auto; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                    </div>
+                    <div>
+                        <h1 class="order-title mb-1" style="color: white; font-size: 2rem;">CHOCOLATERIA CHOCOMANIA</h1>
+                        <p class="mb-0" style="font-size: 1.1rem;">Tu dulce experiencia en camino</p>
+                    </div>
                 </div>
 
-                <!-- Notificación enviada -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-12 text-center"></div>
+                <!-- Info del pedido -->
+                <div class="card mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="order-title mb-1">Pedido #CM-4826</h5>
+                        <p class="text-muted mb-0">Cliente: Juan Perre · 15:30</p>
+                    </div>
+                </div>
+
+                <!-- Info del repartidor -->
+                <div class="driver-info">
+                    <div class="row align-items-center">
+                        <div class="col-3 text-center">
+                            <i class="fas fa-motorcycle fa-2x" style="color: var(--choco-gold);"></i>
+                        </div>
+                        <div class="col-9">
+                            <h5 class="mb-1">Carlos Repartidor</h5>
+                            <p class="mb-0">En camino con tus chocolates</p>
+                            <small><i class="fas fa-clock me-1"></i>Llegada estimada: 15:50</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline de estados -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Progreso del Pedido</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item active">
+                                <div class="timeline-dot"></div>
+                                <div class="d-flex align-items-start mb-2">
+                                    <div class="notification-icon icon-dispatched">
+                                        <i class="fas fa-shipping-fast"></i>
+                                    </div>
+                                    <div>
+                                        <div class="subject-line">Pedido Despachado</div>
+                                        <div class="text-muted small">15:30 - Tu pedido ha sido enviado</div>
+                                    </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12"></div>
+                            </div>
+                            
+                            <div class="timeline-item active">
+                                <div class="timeline-dot"></div>
+                                <div class="d-flex align-items-start mb-2">
+                                    <div class="notification-icon icon-transit">
+                                        <i class="fas fa-truck"></i>
+                                    </div>
+                                    <div>
+                                        <div class="subject-line">Pedido en Camino</div>
+                                        <div class="text-muted small">15:30 - Tu pedido está en reparto</div>
+                                        <div class="time-estimate">Llegada estimada: 15:50</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Estado actual dinámico -->
+                            <div class="timeline-item active" id="currentStatus">
+                                <div class="timeline-dot"></div>
+                                <div class="d-flex align-items-start">
+                                    <div class="notification-icon icon-transit">
+                                        <i class="fas fa-truck"></i>
+                                    </div>
+                                    <div>
+                                        <div class="subject-line">En Reparto</div>
+                                        <div class="text-muted small">Estado actual del pedido</div>
+                                        <div class="time-estimate">Llegada estimada: 15:50</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Notificación recibida -->
+                <!-- Notificaciones -->
+                <h4 class="mb-3" style="color: var(--choco-dark);">
+                    <i class="fas fa-bell me-2" style="color: var(--choco-gold);"></i>
+                    Notificaciones
+                </h4>
+                
+                <!-- Notificación de despacho -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Notificación Recibida</span>
+                                <span class="status-badge status-dispatched">Despachado</span>
+                            </div>
                             <div class="card-body">
                                 <div class="row mb-3">
-                                    <div class="col-12 text-center"></div>
+                                    <div class="col-12">
+                                        <p class="mb-1"><strong>De:</strong> Chocomania</p>
+                                        <p class="mb-1"><strong>Hora:</strong> 15:30</p>
+                                    </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12"></div>
+                                    <div class="col-12">
+                                        <div class="subject-line">🍫 Tu pedido Chocomania está en camino</div>
+                                        <p class="mb-2">Llegada estimada: <span class="time-estimate">15:50</span></p>
+                                        <div class="mt-3 p-3 email-preview">
+                                            <p class="mb-1 small">¡Hola Juan! Tu pedido de Chocomania ya está en camino.</p>
+                                            <p class="mb-0 small">Te llegará aproximadamente a las 15:50. ¡Prepárate para disfrutar!</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Notificación de retraso -->
-                <div class="row">
+                <!-- Notificación de retraso (ocasional) -->
+                <div class="row mb-4" id="delayNotification">
                     <div class="col-12">
-                        <div class="card">
+                        <div class="card border-warning">
+                            <div class="delay-indicator">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Retraso
+                            </div>
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Actualización Importante</span>
+                                <span class="status-badge status-delayed">Retraso</span>
+                            </div>
                             <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <p class="mb-1"><strong>De:</strong> Chocomania</p>
+                                        <p class="mb-1"><strong>Hora:</strong> 15:35</p>
+                                    </div>
+                                </div>
                                 <div class="row">
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12 col-md-4 mb-2"></div>
-                                    <div class="col-12"></div>
+                                    <div class="col-12">
+                                        <div class="subject-line">⚠️ Retraso en tu entrega</div>
+                                        <p class="mb-2">
+                                            <span class="time-delayed me-2">Hora anterior: 15:50</span>
+                                            <span class="time-estimate">Nueva hora estimada: 16:20</span>
+                                        </p>
+                                        <div class="mt-3 p-3 email-preview">
+                                            <p class="mb-1 small">Lamentamos el inconveniente, Juan.</p>
+                                            <p class="mb-0 small">Tu pedido ha sufrido un retraso inesperado. Nueva hora estimada: 16:20.</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="choco-divider"></div>
+
+                <!-- Botón simple para simular retraso -->
+                <div class="row mt-4">
+                    <div class="col-12 text-center">
+                        <button class="btn btn-choco" id="simulateDelay">
+                            <i class="fas fa-clock me-1"></i>Simular retraso inesperado
+                        </button>
+                        <small class="d-block text-muted mt-2">(Esto simula lo que pasaría si ocurriera un retraso real)</small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Ocultar notificación de retraso inicialmente
+        document.getElementById('delayNotification').style.display = 'none';
+        
+        // Simular retraso ocasional
+        document.getElementById('simulateDelay').addEventListener('click', function() {
+            const delayNotification = document.getElementById('delayNotification');
+            const currentStatus = document.getElementById('currentStatus');
+            
+            if (delayNotification.style.display === 'none') {
+                // Mostrar retraso
+                delayNotification.style.display = 'block';
+                currentStatus.className = 'timeline-item delayed';
+                currentStatus.innerHTML = `
+                    <div class="timeline-dot"></div>
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon icon-delayed">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <div class="subject-line">Retraso en Entrega</div>
+                            <div class="text-muted small">Actualizado hace 5 minutos</div>
+                            <div class="time-estimate">Nueva llegada estimada: 16:20</div>
+                        </div>
+                    </div>
+                `;
+                this.innerHTML = '<i class="fas fa-check me-1"></i>Quitar retraso';
+            } else {
+                // Quitar retraso
+                delayNotification.style.display = 'none';
+                currentStatus.className = 'timeline-item active';
+                currentStatus.innerHTML = `
+                    <div class="timeline-dot"></div>
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon icon-transit">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div>
+                            <div class="subject-line">En Reparto</div>
+                            <div class="text-muted small">Estado actual del pedido</div>
+                            <div class="time-estimate">Llegada estimada: 15:50</div>
+                        </div>
+                    </div>
+                `;
+                this.innerHTML = '<i class="fas fa-clock me-1"></i>Simular retraso inesperado';
+            }
+        });
+    </script>
 </body>
 </html>

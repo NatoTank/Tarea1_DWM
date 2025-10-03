@@ -1,32 +1,216 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Seguimiento de Despacho</title>
+    <title>Seguimiento de Despacho - Chocomania</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --choco-dark: #5D4037;
+            --choco-medium: #8D6E63;
+            --choco-light: #D7CCC8;
+            --choco-cream: #FFFFFF;
+            --choco-gold: #FFB300;
+            --choco-danger: #E65100;
+            --choco-success: #2E7D32;
+        }
+        
+        body {
+            background-color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(93, 64, 55, 0.1);
+            border: none;
+            margin-bottom: 20px;
+            background: white;
+        }
+        .card-header {
+            background: linear-gradient(135deg, var(--choco-dark), var(--choco-medium));
+            color: white;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-en-camino {
+            background-color: #E3F2FD;
+            color: #1565C0;
+        }
+        .status-entregado {
+            background-color: #E8F5E9;
+            color: var(--choco-success);
+        }
+        .btn-choco {
+            background: linear-gradient(135deg, var(--choco-gold), var(--choco-danger));
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-choco:hover {
+            background: linear-gradient(135deg, var(--choco-danger), var(--choco-gold));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .btn-outline-choco {
+            border: 2px solid var(--choco-gold);
+            color: var(--choco-dark);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-outline-choco:hover {
+            background-color: var(--choco-gold);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .choco-header {
+            background: linear-gradient(135deg, var(--choco-dark), var(--choco-medium));
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .info-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .map-container {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            height: 200px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .map-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="rgba(255,255,255,0.1)"/><path d="M0 0L100 100M100 0L0 100" stroke="rgba(255,255,255,0.2)" stroke-width="1"/></svg>');
+        }
+        .driver-info-card {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .delivery-complete {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .review-section {
+            background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .star-rating {
+            font-size: 24px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star-rating .active {
+            color: var(--choco-gold);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .review-textarea {
+            border: 2px solid var(--choco-light);
+            border-radius: 10px;
+            padding: 15px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        .review-textarea:focus {
+            border-color: var(--choco-gold);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.1);
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .confirmation-animation {
+            animation: bounceIn 1s ease-out;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
+    <!-- Página 1: Seguimiento en curso -->
+    <div class="container mt-4 mb-5 page active" id="trackingPage">
         <div class="row justify-content-center">
             <div class="col-12 col-lg-10">
-                <!-- Header -->
-                <div class="row mb-4">
-                    <div class="col-12 text-center"></div>
+                <!-- Header con logo -->
+                <div class="choco-header">
+                    <div class="logo-container mb-3">
+                        <img src="CHOLATERIA CHOCOMANIA LOGO.png" alt="Chocomania Logo" style="height: 80px; width: auto; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                    </div>
+                    <h1 class="mb-1" style="font-size: 1.8rem;">Seguimiento de Pedido</h1>
+                    <p class="mb-0">#CM202400001</p>
                 </div>
 
-                <!-- Información del pedido -->
-                <div class="row mb-4">
-                    <div class="col-12 col-md-6">
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-12 mb-2"></div>
-                                    <div class="col-12 mb-2"></div>
-                                    <div class="col-12 mb-2"></div>
-                                    <div class="col-12"></div>
-                                </div>
-                            </div>
+                <!-- Información del cliente -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Información del Cliente</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <strong>Cliente:</strong> Juan Pérez
+                        </div>
+                        <div class="info-item">
+                            <strong>Dirección:</strong> Av. Principal 123
+                        </div>
+                        <div class="info-item">
+                            <strong>Teléfono:</strong> +45 3 124 45781
+                        </div>
+                        <div class="info-item">
+                            <strong>Distancia:</strong> 1,2 km <span class="badge bg-success">Dentro de radio</span>
                         </div>
                     </div>
                 </div>
@@ -34,43 +218,291 @@
                 <!-- Botones de acción -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <div class="d-flex flex-wrap gap-2"></div>
+                        <div class="d-flex flex-wrap gap-3 justify-content-center">
+                            <button class="btn btn-choco flex-fill" id="startRoute">
+                                <i class="fas fa-route me-2"></i>Iniciar Ruta
+                            </button>
+                            <button class="btn btn-choco flex-fill" id="confirmDelivery">
+                                <i class="fas fa-check-circle me-2"></i>Confirmar Entrega
+                            </button>
+                            <button class="btn btn-outline-choco flex-fill" id="reportProblem">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Reportar Problema
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Estado del pedido -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-12 col-md-6 mb-2"></div>
-                                    <div class="col-12 col-md-6 mb-2"></div>
-                                    <div class="col-12 col-md-6 mb-2"></div>
-                                    <div class="col-12 col-md-6 mb-2"></div>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-shipping-fast me-2"></i>Estado del Pedido</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="driver-info-card">
+                            <div class="row align-items-center">
+                                <div class="col-3 text-center">
+                                    <i class="fas fa-motorcycle fa-2x" style="color: var(--choco-dark);"></i>
                                 </div>
+                                <div class="col-9">
+                                    <h5 class="mb-1">Carlos González</h5>
+                                    <p class="mb-1">Repartidor</p>
+                                    <small><i class="fas fa-motorcycle me-1"></i>Moto AGC-123</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12 col-md-6 mb-3">
+                                <strong>Estado Actual:</strong>
+                                <span class="status-badge status-en-camino ms-2">EN CAMINO</span>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3">
+                                <strong>Tiempo Estimado:</strong>
+                                <span class="ms-2">15-20 minutos</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Mapa -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body text-center"></div>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i>Ubicación en Tiempo Real</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="map-container pulse">
+                            <div class="text-center">
+                                <i class="fas fa-map fa-3x mb-3"></i>
+                                <h5>Mapa Interactivo</h5>
+                                <p>Pase de cadena a 3 km</p>
+                            </div>
+                        </div>
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Sólo válido dentro de un radio de 3 km
+                            </small>
                         </div>
                     </div>
                 </div>
 
                 <!-- Botones de contacto -->
-                <div class="row">
+                <div class="row mb-4">
                     <div class="col-12">
-                        <div class="d-flex flex-wrap gap-2 justify-content-center"></div>
+                        <div class="d-flex flex-wrap gap-3 justify-content-center">
+                            <button class="btn btn-outline-choco">
+                                <i class="fas fa-phone me-2"></i>Llamar Repartidor
+                            </button>
+                            <button class="btn btn-outline-choco" id="updateLocation">
+                                <i class="fas fa-sync-alt me-2"></i>Actualizar Ubicación
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Página 2: Confirmación de entrega -->
+    <div class="container mt-4 mb-5 page" id="confirmationPage">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <!-- Header con logo -->
+                <div class="choco-header">
+                    <div class="logo-container mb-3">
+                        <img src="CHOLATERIA CHOCOMANIA LOGO.png" alt="Chocomania Logo" style="height: 80px; width: auto; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                    </div>
+                    <h1 class="mb-1" style="font-size: 1.8rem;">¡Entrega Confirmada!</h1>
+                    <p class="mb-0">Pedido #CM202400001</p>
+                </div>
+
+                <!-- Información de entrega -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="delivery-complete confirmation-animation">
+                            <i class="fas fa-check-circle fa-3x mb-3" style="color: var(--choco-success);"></i>
+                            <h4>¡Pedido Entregado Exitosamente!</h4>
+                            <div class="mt-3">
+                                <p><strong>Estado:</strong> <span class="status-badge status-entregado">ENTREGADO</span></p>
+                                <p><strong>Hora de Entrega:</strong> 16:54</p>
+                                <p><strong>Entregado a:</strong> Juan Pérez</p>
+                                <p><strong>Ubicación:</strong> Av. Principal 123</p>
+                                <p><strong>Repartidor:</strong> Carlos González</p>
+                            </div>
+                            <div class="mt-4">
+                                <p class="mb-0">¡Gracias por tu compra!</p>
+                                <p>Esperamos que disfrutes tus chocolates</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de reseña -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-star me-2"></i>Califica tu Experiencia</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="review-section">
+                            <h5 class="text-center mb-4">
+                                <i class="fas fa-star me-2" style="color: var(--choco-gold);"></i>
+                                ¿Cómo calificarías nuestro servicio?
+                            </h5>
+                            
+                            <!-- Calificación con estrellas -->
+                            <div class="text-center mb-4">
+                                <div class="star-rating mb-3" id="starRating">
+                                    <i class="fas fa-star" data-rating="1"></i>
+                                    <i class="fas fa-star" data-rating="2"></i>
+                                    <i class="fas fa-star" data-rating="3"></i>
+                                    <i class="fas fa-star" data-rating="4"></i>
+                                    <i class="fas fa-star" data-rating="5"></i>
+                                </div>
+                                <small id="ratingText" class="text-muted">Toca las estrellas para calificar</small>
+                            </div>
+
+                            <!-- Comentario -->
+                            <div class="mb-4">
+                                <label for="reviewComment" class="form-label">
+                                    <strong>Comparte tu experiencia (opcional):</strong>
+                                </label>
+                                <textarea 
+                                    class="form-control review-textarea" 
+                                    id="reviewComment" 
+                                    rows="4" 
+                                    placeholder="¿Qué te parecieron nuestros chocolates? ¿Cómo fue el servicio de entrega?"
+                                ></textarea>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                                <button class="btn btn-outline-choco" id="skipReview">
+                                    <i class="fas fa-forward me-2"></i>Saltar
+                                </button>
+                                <button class="btn btn-choco" id="submitReview">
+                                    <i class="fas fa-paper-plane me-2"></i>Enviar Reseña
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón para volver al inicio -->
+                <div class="text-center">
+                    <button class="btn btn-outline-choco" id="backToTracking">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al Seguimiento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sistema de navegación entre páginas
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // Sistema de calificación con estrellas
+        const stars = document.querySelectorAll('.star-rating i');
+        let currentRating = 0;
+        const ratingText = document.getElementById('ratingText');
+        
+        stars.forEach(star => {
+            star.addEventListener('mouseover', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+                updateRatingText(rating);
+            });
+            
+            star.addEventListener('mouseout', function() {
+                highlightStars(currentRating);
+                updateRatingText(currentRating);
+            });
+            
+            star.addEventListener('click', function() {
+                currentRating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(currentRating);
+                updateRatingText(currentRating);
+            });
+        });
+        
+        function highlightStars(rating) {
+            stars.forEach(star => {
+                const starRating = parseInt(star.getAttribute('data-rating'));
+                if (starRating <= rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+        
+        function updateRatingText(rating) {
+            const texts = {
+                0: "Toca las estrellas para calificar",
+                1: "Malo",
+                2: "Regular",
+                3: "Bueno",
+                4: "Muy bueno",
+                5: "Excelente"
+            };
+            ratingText.textContent = texts[rating];
+        }
+
+        // Event Listeners
+        document.getElementById('confirmDelivery').addEventListener('click', function() {
+            showPage('confirmationPage');
+        });
+
+        document.getElementById('startRoute').addEventListener('click', function() {
+            alert('Ruta iniciada hacia Av. Principal 123');
+            this.innerHTML = '<i class="fas fa-route me-2"></i>Ruta en Progreso';
+            this.classList.remove('btn-choco');
+            this.classList.add('btn-primary');
+        });
+
+        document.getElementById('reportProblem').addEventListener('click', function() {
+            alert('Ventana de reporte de problema abierta');
+        });
+
+        document.getElementById('updateLocation').addEventListener('click', function() {
+            alert('Ubicación actualizada correctamente');
+            this.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Actualizando...';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Ubicación Actualizada';
+            }, 1500);
+        });
+
+        document.getElementById('submitReview').addEventListener('click', function() {
+            if (currentRating === 0) {
+                alert('Por favor, selecciona una calificación con las estrellas');
+                return;
+            }
+            
+            const comment = document.getElementById('reviewComment').value;
+            alert(`¡Gracias por tu reseña!\nCalificación: ${currentRating} estrellas\nComentario: ${comment || 'Sin comentario'}`);
+            
+            this.innerHTML = '<i class="fas fa-check me-2"></i>Reseña Enviada';
+            this.classList.remove('btn-choco');
+            this.classList.add('btn-success');
+            this.disabled = true;
+            
+            document.getElementById('skipReview').disabled = true;
+        });
+
+        document.getElementById('skipReview').addEventListener('click', function() {
+            alert('Puedes calificar más tarde desde tu historial de pedidos');
+            showPage('trackingPage');
+        });
+
+        document.getElementById('backToTracking').addEventListener('click', function() {
+            showPage('trackingPage');
+        });
+    </script>
 </body>
 </html>

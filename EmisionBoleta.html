@@ -1,54 +1,365 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Emisión de Boleta</title>
+    <title>Chocomanía - Emisión de Boleta</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .choco-header {
+            background-color: #7B3F00;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        .choco-logo {
+            font-weight: bold;
+            font-size: 1.8rem;
+        }
+        .section-title {
+            color: #7B3F00;
+            font-weight: bold;
+            margin-bottom: 25px;
+            text-align: center;
+            border-bottom: 2px solid #7B3F00;
+            padding-bottom: 10px;
+        }
+        .receipt-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .receipt-header {
+            background: linear-gradient(135deg, #7B3F00, #A0522D);
+            color: white;
+            padding: 20px;
+        }
+        .receipt-body {
+            padding: 30px;
+        }
+        .btn-choco {
+            background-color: #7B3F00;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-choco:hover {
+            background-color: #5a2e00;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(123, 63, 0, 0.3);
+        }
+        .btn-outline-choco {
+            background-color: transparent;
+            color: #7B3F00;
+            border: 2px solid #7B3F00;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-choco:hover {
+            background-color: #7B3F00;
+            color: white;
+        }
+        .receipt-box {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #28a745;
+        }
+        .error-box {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #dc3545;
+        }
+        .email-confirmation {
+            background-color: #e7f3ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #007bff;
+        }
+        .artist-info {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .retry-indicator {
+            background-color: #fff3cd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .pdf-preview {
+            background: white;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner-choco {
+            color: #7B3F00;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-10 col-lg-8">
-                <!-- Header -->
-                <div class="row mb-4">
-                    <div class="col-12 text-center"></div>
-                </div>
+    <!-- Header -->
+    <div class="choco-header text-center">
+        <div class="container">
+            <div class="choco-logo">Chocomanía</div>
+            <div>https://www.Chocomania.cl</div>
+        </div>
+    </div>
 
-                <!-- Mensaje de pago exitoso -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="alert alert-success text-center"></div>
-                    </div>
-                </div>
-
-                <!-- Información de boleta -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <div class="row mb-3">
-                                    <div class="col-12"></div>
-                                </div>
+    <div class="container">
+        <!-- Escenario Exitoso -->
+        <div id="successScenario">
+            <h1 class="section-title">PAGO EXITOSO</h1>
+            
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-8">
+                    <div class="receipt-card">
+                        <div class="receipt-header text-center">
+                            <h3><i class="fas fa-check-circle me-2"></i>¡Tu pago ha sido procesado exitosamente!</h3>
+                            <p class="mb-0">Boleta Digital Generada</p>
+                        </div>
+                        
+                        <div class="receipt-body">
+                            <div class="receipt-box text-center">
+                                <h4 class="mb-3">Boleta Digital</h4>
+                                <p class="mb-3">Se ha generado tu boleta digital y será enviada a tu correo electrónico.</p>
+                                
                                 <div class="row justify-content-center">
                                     <div class="col-12 col-md-8 text-start">
-                                        <div class="row">
-                                            <div class="col-12 mb-2"></div>
-                                            <div class="col-12 mb-2"></div>
+                                        <div class="mb-3">
+                                            <p><strong>Nº Boleta:</strong> B001-123456</p>
+                                            <p><strong>Correo:</strong> cliente@ejemplo.com</p>
+                                            <p><strong>Fecha:</strong> 15/09/2024 14:30</p>
+                                            <p><strong>RUT:</strong> 12.345.678-9</p>
+                                            <p><strong>Monto Total:</strong> $324.970</p>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <div class="pdf-preview">
+                                    <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                                    <h5>Boleta_Chocomania_B001-123456.pdf</h5>
+                                    <p class="text-muted">Documento tributario electrónico</p>
+                                    <small class="text-muted">Este documento es válido para todos los efectos tributarios.</small>
+                                </div>
+                            </div>
+
+                            <!-- Simulación de envío de email -->
+                            <div class="email-confirmation mt-4">
+                                <div class="processing-container text-center">
+                                    <div class="spinner-choco">
+                                        <i class="fas fa-envelope fa-bounce"></i>
+                                    </div>
+                                    <h5>Enviando boleta a tu correo...</h5>
+                                    <div class="progress mt-3" style="height: 6px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%;"></div>
+                                    </div>
+                                    <small class="text-success mt-2">¡Boleta enviada exitosamente!</small>
+                                </div>
+                            </div>
+
+                            <!-- Botones de Acción -->
+                            <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
+                                <button class="btn btn-choco" onclick="downloadReceipt()">
+                                    <i class="fas fa-download me-2"></i>Descargar Boleta PDF
+                                </button>
+                                <button class="btn btn-outline-choco" onclick="continueShopping()">
+                                    <i class="fas fa-store me-2"></i>Seguir Comprando
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Botón de descarga -->
-                <div class="row">
-                    <div class="col-12 text-center"></div>
+        <!-- Escenario de Error (oculto inicialmente) -->
+        <div id="errorScenario" style="display: none;">
+            <h1 class="section-title">SISTEMA CHOCONANÍA</h1>
+            
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-8">
+                    <div class="receipt-card">
+                        <div class="receipt-header text-center">
+                            <h3><i class="fas fa-exclamation-triangle me-2"></i>Error en Envío de Boleta</h3>
+                            <p class="mb-0">Sistema de notificaciones</p>
+                        </div>
+                        
+                        <div class="receipt-body">
+                            <div class="error-box">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Pedido:</strong> #CJ202400001</p>
+                                        <p><strong>Boleta:</strong> B001-123456</p>
+                                        <p><strong>Error:</strong> Servidor de correo no disponible</p>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <p><strong>Intento:</strong> <span class="status-badge status-warning">1/3</span></p>
+                                        <p><strong>Estado:</strong> <span class="status-badge status-error">FALLIDO</span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="retry-indicator mt-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-sync-alt fa-spin text-warning me-3"></i>
+                                        <div>
+                                            <strong>Reintentando envío automáticamente...</strong>
+                                            <div class="mt-1">
+                                                <small class="text-muted">El sistema realizará 3 intentos antes de generar alerta</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <p class="mb-1"><strong>Próximo reintento:</strong> 2:30 PM</p>
+                                    <small class="text-muted">Tiempo estimado: <span id="countdown">02:00</span></small>
+                                </div>
+                            </div>
+
+                            <!-- Información de contacto -->
+                            <div class="alert alert-info mt-4">
+                                <h6><i class="fas fa-info-circle me-2"></i>Información importante</h6>
+                                <p class="mb-2">Si no recibes la boleta después de los reintentos automáticos:</p>
+                                <ul class="mb-0">
+                                    <li>La boleta estará disponible para descarga en "Mis Pedidos"</li>
+                                    <li>Puedes contactarnos a soporte@chocomania.cl</li>
+                                    <li>Tu compra ha sido registrada exitosamente</li>
+                                </ul>
+                            </div>
+
+                            <!-- Botones de Acción -->
+                            <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
+                                <button class="btn btn-choco" onclick="downloadReceipt()">
+                                    <i class="fas fa-download me-2"></i>Descargar Boleta PDF
+                                </button>
+                                <button class="btn btn-outline-choco" onclick="forceRetry()">
+                                    <i class="fas fa-redo me-2"></i>Reintentar Envío
+                                </button>
+                                <button class="btn btn-outline-choco" onclick="showSuccessScenario()">
+                                    <i class="fas fa-arrow-left me-2"></i>Volver
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Información del artista -->
+        <div class="artist-info">
+            <p><strong>Artista:</strong> APPC:delogo</p>
+            <p>cónsar@mocconanilla.com.br, tamaño: 1.0x10000%</p>
+        </div>
     </div>
+
+    <script>
+        // Función para descargar boleta
+        function downloadReceipt() {
+            alert('Descargando boleta B001-123456...');
+            // En una implementación real, aquí se generaría el PDF
+        }
+
+        // Función para continuar comprando
+        function continueShopping() {
+            alert('Redirigiendo a la tienda...');
+            // window.location.href = 'https://www.Chocomania.cl';
+        }
+
+        // Función para forzar reintento
+        function forceRetry() {
+            alert('Reintentando envío de boleta...');
+            // Simular reintento
+            setTimeout(() => {
+                showSuccessScenario();
+            }, 2000);
+        }
+
+        // Función para mostrar escenario de éxito
+        function showSuccessScenario() {
+            document.getElementById('successScenario').style.display = 'block';
+            document.getElementById('errorScenario').style.display = 'none';
+        }
+
+        // Función para mostrar escenario de error
+        function showErrorScenario() {
+            document.getElementById('successScenario').style.display = 'none';
+            document.getElementById('errorScenario').style.display = 'block';
+            startCountdown();
+        }
+
+        // Simular countdown para reintento
+        function startCountdown() {
+            let timeLeft = 120; // 2 minutos en segundos
+            const countdownElement = document.getElementById('countdown');
+            
+            const countdown = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                timeLeft--;
+                
+                if (timeLeft < 0) {
+                    clearInterval(countdown);
+                    countdownElement.textContent = '00:00';
+                    // Aquí se simularía el reintento automático
+                }
+            }, 1000);
+        }
+
+        // Simular escenario aleatorio (80% éxito, 20% error)
+        document.addEventListener('DOMContentLoaded', function() {
+            const isSuccess = Math.random() > 0.2; // 80% probabilidad de éxito
+            
+            if (isSuccess) {
+                showSuccessScenario();
+            } else {
+                showErrorScenario();
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

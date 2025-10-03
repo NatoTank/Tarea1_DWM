@@ -1,90 +1,503 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Carrito de Compras</title>
+    <title>Chocomanía - Carrito de Compras</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .choco-header {
+            background-color: #7B3F00;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        .choco-logo {
+            font-weight: bold;
+            font-size: 1.8rem;
+        }
+        .section-title {
+            color: #7B3F00;
+            font-weight: bold;
+            margin-bottom: 25px;
+            text-align: center;
+            border-bottom: 2px solid #7B3F00;
+            padding-bottom: 10px;
+        }
+        .cart-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .cart-header {
+            background: linear-gradient(135deg, #7B3F00, #A0522D);
+            color: white;
+            padding: 20px;
+        }
+        .cart-body {
+            padding: 30px;
+        }
+        .btn-choco {
+            background-color: #7B3F00;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-choco:hover {
+            background-color: #5a2e00;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(123, 63, 0, 0.3);
+        }
+        .btn-outline-choco {
+            background-color: transparent;
+            color: #7B3F00;
+            border: 2px solid #7B3F00;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-choco:hover {
+            background-color: #7B3F00;
+            color: white;
+        }
+        .table-choco {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .table-choco thead {
+            background: linear-gradient(135deg, #7B3F00, #A0522D);
+            color: white;
+        }
+        .table-choco tbody tr:hover {
+            background-color: rgba(123, 63, 0, 0.05);
+        }
+        .total-box {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 15px;
+            color: #155724;
+        }
+        .artist-info {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        .customer-info {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .order-confirmation {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .empty-cart-message {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #7B3F00;
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            margin: 0 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        .remove-btn {
+            color: #dc3545;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .remove-btn:hover {
+            color: #bd2130;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
+    <!-- Header -->
+    <div class="choco-header text-center">
+        <div class="container">
+            <div class="choco-logo">Chocomanía</div>
+            <div>https://www.Chocomania.cl</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="section-title">MI CARRITO DE COMPRAS</h1>
+        
+        <!-- Información del Cliente -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-12 col-md-8">
+                <div class="customer-info">
+                    <h5><i class="fas fa-user me-2"></i>Cliente: Castellón Prado Salvador</h5>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta del Carrito -->
         <div class="row justify-content-center">
             <div class="col-12 col-lg-10">
-                <!-- Header -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="d-flex align-items-center mb-3">
-                            <h5 class="mb-0 me-3"></h5>
-                            <div class="text-muted"></div>
-                        </div>
+                <div class="cart-card">
+                    <div class="cart-header text-center">
+                        <h3><i class="fas fa-shopping-cart me-2"></i>Productos en el Carrito</h3>
+                        <p class="mb-0">Revisa y confirma tu pedido</p>
                     </div>
-                </div>
-
-                <!-- Barra de Navegación -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="border-top border-bottom py-2">
-                            <h4 class="text-center mb-0"></h4>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabla de Productos -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead class="table-light">
+                    
+                    <div class="cart-body">
+                        <!-- Tabla de Productos -->
+                        <div class="table-responsive" id="cartTableContainer">
+                            <table class="table table-choco" id="cartTable">
+                                <thead>
                                     <tr>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-end">Precio Unitario</th>
+                                        <th class="text-end">Subtotal</th>
+                                        <th class="text-center">Eliminar</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
+                                <tbody id="cartItems">
+                                    <!-- Los productos se cargarán dinámicamente aquí -->
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Total -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="d-flex justify-content-end">
-                            <div class="bg-success bg-opacity-10 border border-success rounded p-3">
-                                <h5 class="mb-0 text-success"></h5>
+                        
+                        <!-- Mensaje de carrito vacío -->
+                        <div class="empty-cart-message d-none" id="emptyCartMessage">
+                            <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                            <h4>Tu carrito está vacío</h4>
+                            <p>No has agregado ningún producto a tu carrito.</p>
+                            <button class="btn btn-choco mt-3" id="continueShoppingBtn">
+                                <i class="fas fa-store me-2"></i>Continuar Comprando
+                            </button>
+                        </div>
+                        
+                        <!-- Total -->
+                        <div class="row mt-4" id="totalSection">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end">
+                                    <div class="total-box">
+                                        <h4 class="mb-0">TOTAL: $<span id="cartTotal">0</span></h4>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-md-end">
-                            <button class="btn btn-outline-secondary"></button>
-                            <button class="btn btn-primary"></button>
+                        
+                        <!-- Botones de Acción -->
+                        <div class="d-flex flex-wrap gap-3 justify-content-between mt-4" id="actionButtons">
+                            <button class="btn btn-outline-choco" id="continueShoppingBtn2">
+                                <i class="fas fa-arrow-left me-2"></i>Seguir Comprando
+                            </button>
+                            <div class="d-flex gap-3">
+                                <button class="btn btn-outline-choco" id="clearCartBtn">
+                                    <i class="fas fa-trash me-2"></i>Vaciar Carrito
+                                </button>
+                                <button class="btn btn-choco" id="confirmOrderBtn">
+                                    <i class="fas fa-check me-2"></i>Confirmar Pedido
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Confirmación de Pedido -->
+                        <div class="order-confirmation mt-4 d-none" id="orderConfirmation">
+                            <h4><i class="fas fa-check-circle text-success me-2"></i>Pedido Confirmado</h4>
+                            <div class="mt-3">
+                                <h5>Resumen:</h5>
+                                <ul class="list-unstyled" id="orderSummary">
+                                    <!-- El resumen se cargará dinámicamente aquí -->
+                                </ul>
+                                <div class="mt-2 fw-bold">TOTAL: $<span id="orderTotal">0</span></div>
+                            </div>
+                            <div class="mt-3">
+                                <h5>Escenarios de Confirmación:</h5>
+                                <div class="small">
+                                    <p><strong>Escenario: Pedido habitual</strong><br>
+                                    Dado que selecciona 3 tabletas y 1 caja de bombones<br>
+                                    Cuando confirma el carrito<br>
+                                    Entonces el sistema muestra el total correcto</p>
+                                    
+                                    <p><strong>Escenario: Pedido vacío</strong><br>
+                                    Dado que no selecciona productos<br>
+                                    Cuando intenta confirmar<br>
+                                    Entonces el sistema muestra "El carrito está vacío"</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Información del artista -->
+        <div class="artist-info">
+            <p><strong>Artista:</strong> APPC:delogo</p>
+            <p>cónsar@mocconanilla.com.br, tamaño: 1.0x10000%</p>
+        </div>
     </div>
 
+    <script>
+        // Datos del carrito
+        let cartItems = [
+            {
+                id: 1,
+                name: "Nuestro Chocomanía Avanzado",
+                description: "Tableta de chocolate premium",
+                price: 54950,
+                quantity: 1
+            },
+            {
+                id: 2,
+                name: "Caja Beniciones-Santiago",
+                description: "Surrido de bombones artesanales",
+                price: 52940,
+                quantity: 1
+            },
+            {
+                id: 3,
+                name: "Chocolate Avanzado (Tabletas)",
+                description: "Pack de 2 tabletas",
+                price: 105750,
+                quantity: 2
+            },
+            {
+                id: 4,
+                name: "Caja Beniense Avanzada",
+                description: "Edición especial",
+                price: 105750,
+                quantity: 1
+            }
+        ];
+
+        // Elementos del DOM
+        const cartItemsContainer = document.getElementById('cartItems');
+        const cartTotalElement = document.getElementById('cartTotal');
+        const emptyCartMessage = document.getElementById('emptyCartMessage');
+        const cartTableContainer = document.getElementById('cartTableContainer');
+        const totalSection = document.getElementById('totalSection');
+        const actionButtons = document.getElementById('actionButtons');
+        const clearCartBtn = document.getElementById('clearCartBtn');
+        const confirmOrderBtn = document.getElementById('confirmOrderBtn');
+        const orderConfirmation = document.getElementById('orderConfirmation');
+        const orderSummary = document.getElementById('orderSummary');
+        const orderTotalElement = document.getElementById('orderTotal');
+        const continueShoppingBtn = document.getElementById('continueShoppingBtn');
+        const continueShoppingBtn2 = document.getElementById('continueShoppingBtn2');
+
+        // Función para formatear precios
+        function formatPrice(price) {
+            return price.toLocaleString('es-CL');
+        }
+
+        // Función para calcular el total del carrito
+        function calculateCartTotal() {
+            return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        }
+
+        // Función para actualizar la vista del carrito
+        function updateCartView() {
+            // Limpiar el contenedor de items
+            cartItemsContainer.innerHTML = '';
+            
+            // Si el carrito está vacío
+            if (cartItems.length === 0) {
+                cartTableContainer.classList.add('d-none');
+                totalSection.classList.add('d-none');
+                actionButtons.classList.add('d-none');
+                emptyCartMessage.classList.remove('d-none');
+                return;
+            }
+            
+            // Mostrar elementos del carrito
+            cartTableContainer.classList.remove('d-none');
+            totalSection.classList.remove('d-none');
+            actionButtons.classList.remove('d-none');
+            emptyCartMessage.classList.add('d-none');
+            
+            // Agregar cada item al carrito
+            cartItems.forEach(item => {
+                const subtotal = item.price * item.quantity;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <strong>${item.name}</strong>
+                        <div class="text-muted small">${item.description}</div>
+                    </td>
+                    <td class="text-center">
+                        <div class="quantity-control">
+                            <button class="quantity-btn decrease-btn" data-id="${item.id}">-</button>
+                            <input type="number" class="quantity-input" value="${item.quantity}" min="1" data-id="${item.id}">
+                            <button class="quantity-btn increase-btn" data-id="${item.id}">+</button>
+                        </div>
+                    </td>
+                    <td class="text-end">$${formatPrice(item.price)}</td>
+                    <td class="text-end">$${formatPrice(subtotal)}</td>
+                    <td class="text-center">
+                        <button class="remove-btn" data-id="${item.id}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                `;
+                cartItemsContainer.appendChild(row);
+            });
+            
+            // Actualizar el total
+            const total = calculateCartTotal();
+            cartTotalElement.textContent = formatPrice(total);
+            
+            // Agregar event listeners a los botones de cantidad y eliminar
+            addEventListeners();
+        }
+
+        // Función para agregar event listeners a los botones
+        function addEventListeners() {
+            // Botones de aumentar cantidad
+            document.querySelectorAll('.increase-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = parseInt(this.getAttribute('data-id'));
+                    const item = cartItems.find(item => item.id === itemId);
+                    if (item) {
+                        item.quantity++;
+                        updateCartView();
+                    }
+                });
+            });
+            
+            // Botones de disminuir cantidad
+            document.querySelectorAll('.decrease-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = parseInt(this.getAttribute('data-id'));
+                    const item = cartItems.find(item => item.id === itemId);
+                    if (item && item.quantity > 1) {
+                        item.quantity--;
+                        updateCartView();
+                    }
+                });
+            });
+            
+            // Inputs de cantidad
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const itemId = parseInt(this.getAttribute('data-id'));
+                    const item = cartItems.find(item => item.id === itemId);
+                    if (item) {
+                        const newQuantity = parseInt(this.value);
+                        if (newQuantity > 0) {
+                            item.quantity = newQuantity;
+                            updateCartView();
+                        } else {
+                            this.value = item.quantity;
+                        }
+                    }
+                });
+            });
+            
+            // Botones de eliminar
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = parseInt(this.getAttribute('data-id'));
+                    cartItems = cartItems.filter(item => item.id !== itemId);
+                    updateCartView();
+                });
+            });
+        }
+
+        // Función para vaciar el carrito
+        clearCartBtn.addEventListener('click', function() {
+            if (cartItems.length === 0) {
+                alert('El carrito ya está vacío.');
+                return;
+            }
+            
+            if (confirm('¿Estás seguro de que deseas vaciar tu carrito de compras?')) {
+                cartItems = [];
+                updateCartView();
+                alert('Tu carrito ha sido vaciado.');
+            }
+        });
+
+        // Función para confirmar el pedido
+        confirmOrderBtn.addEventListener('click', function() {
+            if (cartItems.length === 0) {
+                alert('El carrito está vacío. Agrega productos antes de confirmar el pedido.');
+                return;
+            }
+            
+            // Actualizar el resumen del pedido
+            orderSummary.innerHTML = '';
+            cartItems.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<i class="fas fa-cube me-2"></i>${item.quantity} x ${item.name}: $${formatPrice(item.price * item.quantity)}`;
+                orderSummary.appendChild(listItem);
+            });
+            
+            // Actualizar el total del pedido
+            orderTotalElement.textContent = formatPrice(calculateCartTotal());
+            
+            // Mostrar confirmación del pedido
+            orderConfirmation.classList.remove('d-none');
+            
+            // Desplazarse suavemente a la confirmación
+            orderConfirmation.scrollIntoView({ behavior: 'smooth' });
+            
+            // En una implementación real, aquí se enviaría el pedido al servidor
+            console.log('Pedido confirmado:', cartItems);
+        });
+
+        // Función para continuar comprando
+        continueShoppingBtn.addEventListener('click', function() {
+            alert('Redirigiendo a la tienda...');
+            // En una implementación real, aquí se redirigiría a la página de productos
+        });
+
+        continueShoppingBtn2.addEventListener('click', function() {
+            alert('Redirigiendo a la tienda...');
+            // En una implementación real, aquí se redirigiría a la página de productos
+        });
+
+        // Inicializar la vista del carrito
+        updateCartView();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,62 +1,420 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Emisión de Factura</title>
+    <title>Chocomanía - Selección de Documento</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .choco-header {
+            background-color: #7B3F00;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        .choco-logo {
+            font-weight: bold;
+            font-size: 1.8rem;
+        }
+        .section-title {
+            color: #7B3F00;
+            font-weight: bold;
+            margin-bottom: 25px;
+            text-align: center;
+            border-bottom: 2px solid #7B3F00;
+            padding-bottom: 10px;
+        }
+        .document-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .document-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .document-card.selected {
+            border-color: #7B3F00;
+            background-color: #fef7f0;
+        }
+        .document-header {
+            background: linear-gradient(135deg, #7B3F00, #A0522D);
+            color: white;
+            padding: 20px;
+        }
+        .document-body {
+            padding: 25px;
+        }
+        .btn-choco {
+            background-color: #7B3F00;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-choco:hover {
+            background-color: #5a2e00;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(123, 63, 0, 0.3);
+        }
+        .btn-outline-choco {
+            background-color: transparent;
+            color: #7B3F00;
+            border: 2px solid #7B3F00;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-choco:hover {
+            background-color: #7B3F00;
+            color: white;
+        }
+        .invoice-form {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        .email-preview {
+            background-color: #e7f3ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #007bff;
+        }
+        .artist-info {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        .document-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #7B3F00;
+        }
+        .form-control:focus {
+            border-color: #7B3F00;
+            box-shadow: 0 0 0 0.2rem rgba(123, 63, 0, 0.25);
+        }
+        .receipt-preview {
+            background: white;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8 col-lg-6">
-                <!-- Header -->
-                <div class="row mb-4">
-                    <div class="col-12 text-center"></div>
-                </div>
+    <!-- Header -->
+    <div class="choco-header text-center">
+        <div class="container">
+            <div class="choco-logo">Chocomanía</div>
+            <div>https://www.Chocomania.cl</div>
+        </div>
+    </div>
 
-                <!-- Selección de documento -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-12"></div>
+    <div class="container">
+        <!-- Pantalla de Selección -->
+        <div id="selectionScreen">
+            <h1 class="section-title">SELECCIONE TIPO DE DOCUMENTO</h1>
+            
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <div class="row">
+                        <!-- Opción Factura -->
+                        <div class="col-md-6 mb-4">
+                            <div class="document-card" id="invoiceOption" onclick="selectDocument('invoice')">
+                                <div class="document-header text-center">
+                                    <h4><i class="fas fa-file-invoice-dollar me-2"></i>Factura</h4>
                                 </div>
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-check mb-3"></div>
-                                        <div class="form-check"></div>
+                                <div class="document-body text-center">
+                                    <div class="document-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <h5>Para empresas</h5>
+                                    <p class="text-muted">Requiere RUT empresarial y razón social para efectos tributarios.</p>
+                                    <div class="mt-3">
+                                        <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Incluye desglose de IVA</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Opción Boleta -->
+                        <div class="col-md-6 mb-4">
+                            <div class="document-card selected" id="receiptOption" onclick="selectDocument('receipt')">
+                                <div class="document-header text-center">
+                                    <h4><i class="fas fa-receipt me-2"></i>Boleta</h4>
+                                </div>
+                                <div class="document-body text-center">
+                                    <div class="document-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <h5>Para consumidor final</h5>
+                                    <p class="text-muted">Documento simplificado para compras personales sin requerimientos adicionales.</p>
+                                    <div class="mt-3">
+                                        <small class="text-muted"><i class="fas fa-check-circle me-1"></i>Seleccionado por defecto</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Datos para factura -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-12"></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-12 mb-3"></div>
-                                    <div class="col-12"></div>
-                                </div>
+                    <!-- Formulario para Factura -->
+                    <div id="invoiceForm" class="invoice-form" style="display: none;">
+                        <h4 class="mb-4"><i class="fas fa-building me-2"></i>Datos para Factura</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="companyRUT" class="form-label fw-bold">RUT Empresa *</label>
+                                <input type="text" class="form-control" id="companyRUT" placeholder="12.345.678-9" value="76.543.210-9">
+                                <div class="form-text">Ingrese RUT con puntos y guión</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="businessName" class="form-label fw-bold">Razón Social *</label>
+                                <input type="text" class="form-control" id="businessName" placeholder="EMPRESA XYZ LIMITADA" value="TECHNOLOGY SOLUTIONS S.A.">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="companyEmail" class="form-label fw-bold">Email Facturación *</label>
+                                <input type="email" class="form-control" id="companyEmail" placeholder="facturacion@empresa.cl" value="contabilidad@technologysolutions.cl">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="companyAddress" class="form-label fw-bold">Dirección</label>
+                                <input type="text" class="form-control" id="companyAddress" placeholder="Av. Principal 123" value="Av. Tecnológica 456, Santiago">
+                            </div>
+                        </div>
+
+                        <!-- Previsualización Factura -->
+                        <div class="receipt-preview">
+                            <i class="fas fa-file-invoice-dollar fa-3x text-primary mb-3"></i>
+                            <h5>Factura_Chocomania_F001-789012.pdf</h5>
+                            <p class="text-muted mb-2">Documento tributario electrónico con desglose de IVA</p>
+                            <small class="text-muted">Válido para todos los efectos tributarios</small>
+                        </div>
+                    </div>
+
+                    <!-- Botón de Continuar -->
+                    <div class="text-center mt-4">
+                        <button class="btn btn-choco btn-lg" onclick="continueToPayment()">
+                            <i class="fas fa-credit-card me-2"></i>Continuar con el Pago
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Confirmación -->
+        <div id="confirmationScreen" style="display: none;">
+            <h1 class="section-title" id="confirmationTitle">DOCUMENTO GENERADO</h1>
+            
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-8">
+                    <div class="document-card">
+                        <div class="document-header text-center">
+                            <h3><i class="fas fa-check-circle me-2"></i>¡Documento Generado Exitosamente!</h3>
+                            <p class="mb-0" id="confirmationSubtitle">Tu documento ha sido enviado a tu correo</p>
+                        </div>
+                        
+                        <div class="document-body">
+                            <!-- Email Preview según tipo de documento -->
+                            <div class="email-preview" id="emailPreview">
+                                <!-- Contenido dinámico según boleta/factura -->
+                            </div>
+
+                            <!-- Botones de Acción -->
+                            <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
+                                <button class="btn btn-choco" onclick="downloadDocument()">
+                                    <i class="fas fa-download me-2"></i>Descargar Documento
+                                </button>
+                                <button class="btn btn-outline-choco" onclick="continueShopping()">
+                                    <i class="fas fa-store me-2"></i>Seguir Comprando
+                                </button>
+                                <button class="btn btn-outline-choco" onclick="showSelectionScreen()">
+                                    <i class="fas fa-arrow-left me-2"></i>Volver
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Botón de continuar -->
-                <div class="row">
-                    <div class="col-12 text-center"></div>
-                </div>
             </div>
         </div>
+        
+        <!-- Información del artista -->
+        <div class="artist-info">
+            <p><strong>Artista:</strong> APPC:delogo</p>
+            <p>cónsar@mocconanilla.com.br, tamaño: 1.0x10000%</p>
+        </div>
     </div>
+
+    <script>
+        let selectedDocument = 'receipt'; // Por defecto boleta
+
+        // Función para seleccionar tipo de documento
+        function selectDocument(type) {
+            selectedDocument = type;
+            
+            // Actualizar estilos de selección
+            document.getElementById('invoiceOption').classList.remove('selected');
+            document.getElementById('receiptOption').classList.remove('selected');
+            
+            if (type === 'invoice') {
+                document.getElementById('invoiceOption').classList.add('selected');
+                document.getElementById('invoiceForm').style.display = 'block';
+            } else {
+                document.getElementById('receiptOption').classList.add('selected');
+                document.getElementById('invoiceForm').style.display = 'none';
+            }
+        }
+
+        // Función para continuar al pago
+        function continueToPayment() {
+            if (selectedDocument === 'invoice') {
+                // Validar campos requeridos para factura
+                const rut = document.getElementById('companyRUT').value;
+                const businessName = document.getElementById('businessName').value;
+                const email = document.getElementById('companyEmail').value;
+                
+                if (!rut || !businessName || !email) {
+                    alert('Por favor complete todos los campos requeridos para la factura.');
+                    return;
+                }
+            }
+            
+            // Simular procesamiento de pago exitoso
+            setTimeout(() => {
+                showConfirmationScreen();
+            }, 1000);
+        }
+
+        // Función para mostrar pantalla de confirmación
+        function showConfirmationScreen() {
+            document.getElementById('selectionScreen').style.display = 'none';
+            document.getElementById('confirmationScreen').style.display = 'block';
+            
+            const emailPreview = document.getElementById('emailPreview');
+            const confirmationTitle = document.getElementById('confirmationTitle');
+            const confirmationSubtitle = document.getElementById('confirmationSubtitle');
+            
+            if (selectedDocument === 'invoice') {
+                // Obtener datos reales del formulario
+                const businessName = document.getElementById('businessName').value;
+                const companyRUT = document.getElementById('companyRUT').value;
+                const companyEmail = document.getElementById('companyEmail').value;
+                const companyAddress = document.getElementById('companyAddress').value;
+                
+                // Configurar para factura con datos reales
+                confirmationTitle.textContent = 'FACTURA GENERADA';
+                confirmationSubtitle.textContent = `Su factura ha sido enviada a: ${companyEmail}`;
+                
+                emailPreview.innerHTML = `
+                    <h5><i class="fas fa-envelope me-2"></i>Email - Factura Chocomanía</h5>
+                    <hr>
+                    <p class="mb-2"><strong>Estimada ${businessName},</strong></p>
+                    <p class="mb-3">Adjuntamos su factura digital correspondiente a la compra realizada.</p>
+                    
+                    <div class="mb-3">
+                        <h6>Detalles de la factura:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Nº Factura:</strong> F001-789012</li>
+                            <li><strong>RUT:</strong> ${companyRUT}</li>
+                            <li><strong>Razón Social:</strong> ${businessName}</li>
+                            ${companyAddress ? `<li><strong>Dirección:</strong> ${companyAddress}</li>` : ''}
+                            <li><strong>Fecha:</strong> 15/02/2024 14:30</li>
+                            <li><strong>Neto:</strong> $471.100</li>
+                            <li><strong>IVA (19%):</strong> $89.509</li>
+                            <li><strong>Total:</strong> $560.609</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="receipt-preview">
+                        <i class="fas fa-file-invoice-dollar fa-2x text-primary mb-2"></i>
+                        <h6>Factura_Chocomania_F001-789012.pdf</h6>
+                        <small class="text-muted">(Documento tributario electrónico)</small>
+                    </div>
+                    
+                    <p class="mt-3 mb-2"><em>Este documento es válido para todos los efectos tributarios.</em></p>
+                    <p class="mb-0"><strong>¡Gracias por su compra!</strong></p>
+                    <p class="mb-0"><em>Equipo Chocomanía</em></p>
+                `;
+            } else {
+                // Configurar para boleta
+                confirmationTitle.textContent = 'BOLETA GENERADA';
+                confirmationSubtitle.textContent = 'Tu boleta ha sido enviada a tu correo';
+                
+                emailPreview.innerHTML = `
+                    <h5><i class="fas fa-envelope me-2"></i>Email - Boleta Chocomanía</h5>
+                    <hr>
+                    <p class="mb-2"><strong>Hola Juan Pérez,</strong></p>
+                    <p class="mb-3">Adjuntamos tu boleta digital correspondiente a la compra realizada.</p>
+                    
+                    <div class="mb-3">
+                        <h6>Detalles de la boleta:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Nº Boleta:</strong> B001-123456</li>
+                            <li><strong>Fecha:</strong> 15/02/2024 14:30</li>
+                            <li><strong>RUT:</strong> 12.345.678-9</li>
+                            <li><strong>Monto:</strong> $524.970</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="receipt-preview">
+                        <i class="fas fa-receipt fa-2x text-success mb-2"></i>
+                        <h6>Boleta_Chocomania_B001-123456.pdf</h6>
+                        <small class="text-muted">(Documento tributario electrónico)</small>
+                    </div>
+                    
+                    <p class="mt-3 mb-2"><em>Este documento es válido para todos los efectos tributarios.</em></p>
+                    <p class="mb-0"><strong>¡Gracias por tu compra!</strong></p>
+                    <p class="mb-0"><em>Equipo Chocomanía</em></p>
+                `;
+            }
+        }
+
+        // Función para volver a selección
+        function showSelectionScreen() {
+            document.getElementById('confirmationScreen').style.display = 'none';
+            document.getElementById('selectionScreen').style.display = 'block';
+        }
+
+        // Función para descargar documento
+        function downloadDocument() {
+            const docType = selectedDocument === 'invoice' ? 'Factura' : 'Boleta';
+            const docNumber = selectedDocument === 'invoice' ? 'F001-789012' : 'B001-123456';
+            alert(`Descargando ${docType} ${docNumber}...`);
+        }
+
+        // Función para continuar comprando
+        function continueShopping() {
+            alert('Redirigiendo a la tienda...');
+        }
+
+        // Inicializar con boleta seleccionada por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            selectDocument('receipt');
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
