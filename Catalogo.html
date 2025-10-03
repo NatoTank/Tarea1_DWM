@@ -1,26 +1,444 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <title>Bootstrap Example</title>
+  <title>Chocomania - Catálogo</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .choco-header {
+      background-color: #7B3F00;
+      color: white;
+      padding: 15px 0;
+      margin-bottom: 30px;
+    }
+    .choco-logo {
+      font-weight: bold;
+      font-size: 1.8rem;
+    }
+    .product-card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      margin-bottom: 25px;
+      height: 100%;
+      overflow: hidden;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .product-image-container {
+      height: 250px;
+      border-radius: 10px 10px 0 0;
+      overflow: hidden;
+      position: relative;
+      background-color: #f5e6d3;
+    }
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+      background-color: white;
+    }
+    .product-card:hover .product-image {
+      transform: scale(1.05);
+    }
+    .product-title {
+      color: #7B3F00;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .product-price {
+      font-weight: bold;
+      color: #28a745;
+      font-size: 1.2rem;
+    }
+    .product-category {
+      font-size: 0.9rem;
+      color: #6c757d;
+      margin-bottom: 10px;
+    }
+    .pagination-container {
+      margin-top: 30px;
+    }
+    .page-item.active .page-link {
+      background-color: #7B3F00;
+      border-color: #7B3F00;
+    }
+    .page-link {
+      color: #7B3F00;
+    }
+    .empty-catalog {
+      text-align: center;
+      padding: 50px 20px;
+      color: #6c757d;
+    }
+    .empty-catalog i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      color: #dee2e6;
+    }
+    .filter-section {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .catalog-title {
+      color: #7B3F00;
+      font-weight: bold;
+      margin-bottom: 25px;
+      text-align: center;
+      border-bottom: 2px solid #7B3F00;
+      padding-bottom: 10px;
+    }
+    .btn-choco {
+      background-color: #7B3F00;
+      color: white;
+      border: none;
+    }
+    .btn-choco:hover {
+      background-color: #5a2e00;
+      color: white;
+    }
+    .artist-info {
+      font-size: 0.8rem;
+      color: #6c757d;
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #dee2e6;
+    }
+    .card-body {
+      padding: 20px;
+    }
+    .image-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #7B3F00;
+      font-size: 3rem;
+      background-color: #f5e6d3;
+    }
+    .product-image.loading {
+      opacity: 0;
+    }
+    .product-image.loaded {
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+  </style>
 </head>
 <body>
-  
-<div class="container">
-    <div class="row">
-        <div class="col-4 d-flex justify-content-center"></div>
-        <div class="col-4 d-flex justify-content-center"></div>
-        <div class="col-4 d-flex justify-content-center"></div>
+  <div class="choco-header text-center">
+    <div class="container">
+      <div class="choco-logo">Chocomania</div>
+      <div>https://www.Chocomania.cl</div>
     </div>
-    <div class="row">
-        <div class="col-4 d-flex justify-content-center"></div>
-        <div class="col-4 d-flex justify-content-center"></div>
-        <div class="col-4 d-flex justify-content-center"></div>
-    </div>
-</div>
+  </div>
 
+  <div class="container">
+    <h1 class="catalog-title">CATÁLOGO DE CHOCOLATES</h1>
+    
+    <!-- Filtros -->
+    <div class="filter-section">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="input-group mb-3">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar chocolates..." id="searchInput">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <select class="form-select" id="categoryFilter">
+            <option value="">Todas las categorías</option>
+            <option value="con leche">Chocolate con Leche</option>
+            <option value="blanco">Chocolate Blanco</option>
+            <option value="Bombones">Bombones</option>
+            <option value="Alfajores">Alfajores</option>
+            <option value="Macaroons">Macaroons</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Catálogo de productos -->
+    <div id="productsCatalog">
+      <div class="row" id="productsContainer">
+        <!-- Los productos se cargarán aquí dinámicamente -->
+      </div>
+      
+      <!-- Paginación -->
+      <div class="row pagination-container">
+        <div class="col-12 d-flex justify-content-center">
+          <nav>
+            <ul class="pagination" id="pagination">
+              <!-- La paginación se generará dinámicamente -->
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mensaje cuando no hay productos -->
+    <div id="emptyCatalog" class="empty-catalog" style="display: none;">
+      <i class="fas fa-box-open"></i>
+      <h3>No hay productos disponibles</h3>
+      <p>Lo sentimos, actualmente no tenemos productos en nuestro catálogo.</p>
+    </div>
+    
+    <!-- Información del artista -->
+    <div class="artist-info">
+      <p><strong>Artista:</strong> APPC:delogo</p>
+      <p>cónsar@mocconanilla.com.br, tamaño: 1.0x10000%</p>
+    </div>
+  </div>
+
+  <script>
+    // Datos de ejemplo para el catálogo CON IMÁGENES
+    const products = [
+      { 
+        id: 1, 
+        name: "Chocolate Avenida", 
+        price: 5000, 
+        category: "con leche", 
+        image: "ChocolateAvenida.png"
+      },
+      { 
+        id: 2, 
+        name: "Chocolate con Leche", 
+        price: 4000, 
+        category: "con leche", 
+        image: "ChocolateLeche.png"
+      },
+      { 
+        id: 3, 
+        name: "Chocolate Blanco", 
+        price: 6000, 
+        category: "blanco", 
+        image: "ChocolateBlanco.png"
+      },
+      { 
+        id: 4, 
+        name: "Chocolate con Almendras", 
+        price: 7000, 
+        category: "con leche", 
+        image: "ChocolateAlmendras.png"
+      },
+      { 
+        id: 5, 
+        name: "Bombones Chocolate Negro", 
+        price: 8000, 
+        category: "Bombones", 
+        image: "Bombones.png"
+      },
+      { 
+        id: 6, 
+        name: "Bombones Chocolate Blanco", 
+        price: 5000, 
+        category: "Bombones", 
+        image: "BombonesBlanco.png"
+      },
+      { 
+        id: 7, 
+        name: "Alfajores", 
+        price: 5500, 
+        category: "Alfajores", 
+        image: "Alfajores.png"
+      },
+      { 
+        id: 8, 
+        name: "Macaroons", 
+        price: 7500, 
+        category: "Macaroons", 
+        image: "Macaroons.png"
+      },
+    ];
+
+    // Variables para paginación
+    const productsPerPage = 6;
+    let currentPage = 1;
+    let filteredProducts = [...products];
+    let imageCache = new Map(); // Cache para imágenes ya cargadas
+
+    // Función para formatear precio en CLP
+    function formatPrice(price) {
+      return new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 0
+      }).format(price);
+    }
+
+    // Función para cargar imagen con cache
+    function loadImage(imgElement, src, productId) {
+      // Si la imagen ya está en cache, usarla inmediatamente
+      if (imageCache.has(src)) {
+        imgElement.src = src;
+        imgElement.classList.remove('loading');
+        imgElement.classList.add('loaded');
+        return;
+      }
+
+      // Mostrar placeholder mientras carga
+      imgElement.classList.add('loading');
+      
+      const tempImage = new Image();
+      tempImage.onload = function() {
+        // Guardar en cache
+        imageCache.set(src, true);
+        // Asignar la imagen
+        imgElement.src = src;
+        imgElement.classList.remove('loading');
+        imgElement.classList.add('loaded');
+      };
+      tempImage.onerror = function() {
+        // Mostrar placeholder si hay error
+        imgElement.classList.remove('loading');
+        imgElement.parentElement.innerHTML = '<div class="image-placeholder"><i class="fas fa-cube"></i></div>';
+      };
+      tempImage.src = src;
+    }
+
+    // Función para renderizar productos
+    function renderProducts() {
+      const container = document.getElementById('productsContainer');
+      container.innerHTML = '';
+      
+      // Calcular productos para la página actual
+      const startIndex = (currentPage - 1) * productsPerPage;
+      const endIndex = startIndex + productsPerPage;
+      const productsToShow = filteredProducts.slice(startIndex, endIndex);
+      
+      if (productsToShow.length === 0) {
+        document.getElementById('productsCatalog').style.display = 'none';
+        document.getElementById('emptyCatalog').style.display = 'block';
+        return;
+      }
+      
+      document.getElementById('productsCatalog').style.display = 'block';
+      document.getElementById('emptyCatalog').style.display = 'none';
+      
+      // Crear tarjetas de productos
+      productsToShow.forEach(product => {
+        const col = document.createElement('div');
+        col.className = 'col-md-4 col-sm-6';
+        
+        col.innerHTML = `
+          <div class="card product-card">
+            <div class="product-image-container">
+              <img class="product-image loading" 
+                   id="img-${product.id}" 
+                   alt="${product.name}"
+                   loading="lazy">
+            </div>
+            <div class="card-body">
+              <h5 class="product-title">${product.name}</h5>
+              <div class="product-category">${product.category}</div>
+              <div class="product-price">${formatPrice(product.price)}</div>
+              <button class="btn btn-choco mt-2 w-100">
+                <i class="fas fa-shopping-cart"></i> Agregar al carrito
+              </button>
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(col);
+        
+        // Cargar la imagen después de crear el elemento
+        const imgElement = document.getElementById(`img-${product.id}`);
+        if (imgElement) {
+          loadImage(imgElement, product.image, product.id);
+        }
+      });
+      
+      // Actualizar paginación
+      renderPagination();
+    }
+
+    // Función para renderizar paginación
+    function renderPagination() {
+      const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+      const paginationContainer = document.getElementById('pagination');
+      paginationContainer.innerHTML = '';
+      
+      if (totalPages <= 1) return;
+      
+      // Botón anterior
+      const prevLi = document.createElement('li');
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      prevLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage - 1}">Anterior</a>`;
+      paginationContainer.appendChild(prevLi);
+      
+      // Números de página
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+        paginationContainer.appendChild(li);
+      }
+      
+      // Botón siguiente
+      const nextLi = document.createElement('li');
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      nextLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage + 1}">Siguiente</a>`;
+      paginationContainer.appendChild(nextLi);
+      
+      // Añadir event listeners a los enlaces de paginación
+      document.querySelectorAll('.page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const page = parseInt(this.getAttribute('data-page'));
+          if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+            currentPage = page;
+            renderProducts();
+            // Scroll suave hacia arriba
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      });
+    }
+
+    // Función para filtrar productos
+    function filterProducts() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      
+      filteredProducts = products.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(searchTerm);
+        const matchesCategory = !categoryFilter || product.category === categoryFilter;
+        return matchesSearch && matchesCategory;
+      });
+      
+      currentPage = 1;
+      renderProducts();
+    }
+
+    // Inicializar eventos
+    document.getElementById('searchInput').addEventListener('input', filterProducts);
+    document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+
+    // Inicializar catálogo
+    renderProducts();
+  </script>
 </body>
 </html>
