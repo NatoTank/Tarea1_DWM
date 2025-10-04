@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Chocomanía - Chocolatería Artesanal</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --choco-primary: #7B3F00;
+            --choco-secondary: #A0522D;
+            --choco-light: #f5e6d3;
+            --choco-gold: #D4AF37;
+        }
+
+        body {
+            font-family: 'Playfair Display', serif;
+            background-color: #fff;
+        }
+
+        .top-bar {
+            background: var(--choco-primary);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand img {
+            height: 60px;
+        }
+
+        .nav-link {
+            color: var(--choco-primary);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+        }
+
+        .hero-section {
+            background: url('chocolate-hero.jpg') center/cover;
+            height: 80vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .category-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0;
+            margin-bottom: 30px;
+        }
+
+        .category-card img {
+            transition: transform 0.3s;
+        }
+
+        .category-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .category-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+        }
+
+        .btn-choco {
+            background: var(--choco-primary);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 0;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-choco:hover {
+            background: var(--choco-secondary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            background: var(--choco-primary);
+            color: white;
+            padding: 50px 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--choco-primary);
+        }
+
+        .featured-products {
+            padding: 80px 0;
+            background: var(--choco-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container text-center">
+            Envío gratis en pedidos sobre $50.000 en Santiago
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="CHOLATERIA CHOCOMANIA LOGO.png" alt="Chocomanía">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="Catalogo.html">Productos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="PromocionesActivas.html">Promociones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="Login.html">Mi Cuenta</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="VaciadoCarrito.html">
+                            <i class="fas fa-shopping-cart"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content container">
+            <h1 class="display-3 mb-4">Chocolatería Artesanal</h1>
+            <p class="lead mb-4">Descubre el verdadero sabor del chocolate premium</p>
+            <a href="Catalogo.html" class="btn btn-choco">Ver Productos</a>
+        </div>
+    </section>
+
+    <!-- Categorías -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title">Nuestras Categorías</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="category-card">
+                        <img src="bombones.jpg" alt="Bombones" class="w-100">
+                        <div class="category-overlay">
+                            <h3>Bombones</h3>
+                            <a href="FiltroCatalogo.html" class="btn btn-choco btn-sm">Ver más</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="category-card">
+                        <img src="tabletas.jpg" alt="Tabletas" class="w-100">
+                        <div class="category-overlay">
+                            <h3>Tabletas</h3>
+                            <a href="FiltroCatalogo.html" class="btn btn-choco btn-sm">Ver más</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="category-card">
+                        <img src="regalos.jpg" alt="Regalos" class="w-100">
+                        <div class="category-overlay">
+                            <h3>Regalos</h3>
+                            <a href="FiltroCatalogo.html" class="btn btn-choco btn-sm">Ver más</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Productos Destacados -->
+    <section class="featured-products">
+        <div class="container">
+            <h2 class="section-title">Productos Destacados</h2>
+            <div class="row">
+                <!-- Aquí irían los productos destacados -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Contacto</h5>
+                    <p>Email: contacto@chocomania.cl</p>
+                    <p>Teléfono: +56 2 2123 4567</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="Catalogo.html" class="text-white">Productos</a></li>
+                        <li><a href="PromocionesActivas.html" class="text-white">Promociones</a></li>
+                        <li><a href="Login.html" class="text-white">Mi Cuenta</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Síguenos</h5>
+                    <div class="social-links">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
