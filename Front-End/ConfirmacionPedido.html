@@ -118,6 +118,12 @@
             font-weight: bold;
             color: #7B3F00;
         }
+        .customer-info {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -131,6 +137,15 @@
 
     <div class="container">
         <h1 class="section-title">RESUMEN DE TU COMPRA</h1>
+        
+        <!-- Información del Cliente -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-12 col-md-8">
+                <div class="customer-info">
+                    <h5><i class="fas fa-user me-2"></i>Cliente: <span id="customerName">Cargando...</span></h5>
+                </div>
+            </div>
+        </div>
         
         <!-- Tarjeta del Pedido -->
         <div class="row justify-content-center">
@@ -153,25 +168,8 @@
                                         <th class="text-end">Subtotal</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <strong>Tableta Chocolate Amargo</strong>
-                                            <div class="text-muted small">Chocolate 70% cacao</div>
-                                        </td>
-                                        <td class="text-center">2</td>
-                                        <td class="text-end">$55.900</td>
-                                        <td class="text-end">$111.800</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong>Caja Bombones Surtidos</strong>
-                                            <div class="text-muted small">Surrido premium de bombones</div>
-                                        </td>
-                                        <td class="text-center">1</td>
-                                        <td class="text-end">$12.900</td>
-                                        <td class="text-end">$12.900</td>
-                                    </tr>
+                                <tbody id="orderItems">
+                                    <!-- Los productos se cargarán dinámicamente aquí -->
                                 </tbody>
                             </table>
                         </div>
@@ -181,7 +179,7 @@
                             <div class="col-12">
                                 <div class="d-flex justify-content-end">
                                     <div class="total-box">
-                                        <h4 class="mb-0">TOTAL: $124.700</h4>
+                                        <h4 class="mb-0">TOTAL: $<span id="orderTotal">0</span></h4>
                                     </div>
                                 </div>
                             </div>
@@ -190,8 +188,8 @@
                         <!-- Confirmación Exitosa -->
                         <div class="confirmation-success d-none" id="successConfirmation">
                             <h4 class="text-success"><i class="fas fa-check-circle me-2"></i>¡Pedido Confirmado Exitosamente!</h4>
-                            <p class="mb-2">Número de Pedido: <span class="order-number">#CM202400001</span></p>
-                            <p class="mb-0">Hemos enviado un correo electrónico con los detalles de tu pedido. Te mantendremos informado sobre el estado de tu envío.</p>
+                            <p class="mb-2">Número de Pedido: <span class="order-number" id="confirmedOrderNumber">#CM202400001</span></p>
+                            <p class="mb-0">Redirigiendo al proceso de pago...</p>
                         </div>
                         
                         <!-- Error de Confirmación -->
@@ -214,6 +212,9 @@
                                 </button>
                                 <button class="btn btn-choco d-none" id="retryBtn">
                                     <i class="fas fa-redo me-2"></i>Reintentar Confirmación
+                                </button>
+                                <button class="btn btn-choco d-none" id="proceedToPaymentBtn">
+                                    <i class="fas fa-credit-card me-2"></i>Proceder al Pago
                                 </button>
                             </div>
                         </div>
@@ -238,19 +239,80 @@
         const backToCartBtn = document.getElementById('backToCartBtn');
         const continueShoppingBtn = document.getElementById('continueShoppingBtn');
         const actionButtons = document.getElementById('actionButtons');
+        const orderItems = document.getElementById('orderItems');
+        const orderTotal = document.getElementById('orderTotal');
+        const customerName = document.getElementById('customerName');
+        const proceedToPaymentBtn = document.getElementById('proceedToPaymentBtn');
+        const confirmedOrderNumber = document.getElementById('confirmedOrderNumber');
 
         // Variable para controlar intentos
         let attemptCount = 0;
+        let confirmedOrder = null;
+
+        // Función para generar número de pedido
+        function generateOrderNumber() {
+            const timestamp = new Date().getTime();
+            return `CM${timestamp}`;
+        }
+
+        // Cargar datos del pedido pendiente al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder'));
+            
+            if (!pendingOrder) {
+                alert('No hay pedido pendiente. Serás redirigido al carrito.');
+                window.location.href = 'ArmadoPedido.html';
+                return;
+            }
+            
+            updateOrderSummary(pendingOrder);
+        });
+
+        // Función para actualizar el resumen con datos reales
+        function updateOrderSummary(orderData) {
+            // Actualizar información del cliente
+            customerName.textContent = orderData.customer || 'Cliente';
+            
+            // Limpiar tabla
+            orderItems.innerHTML = '';
+            
+            // Agregar productos
+            orderData.items.forEach(item => {
+                const subtotal = item.price * item.quantity;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <strong>${item.name}</strong>
+                        <div class="text-muted small">Código: ${item.id}</div>
+                    </td>
+                    <td class="text-center">${item.quantity}</td>
+                    <td class="text-end">$${item.price.toLocaleString('es-CL')}</td>
+                    <td class="text-end">$${subtotal.toLocaleString('es-CL')}</td>
+                `;
+                orderItems.appendChild(row);
+            });
+            
+            // Actualizar total
+            orderTotal.textContent = orderData.total.toLocaleString('es-CL');
+        }
 
         // Función para simular confirmación de pedido
         function confirmOrder() {
+            const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder'));
+            
+            if (!pendingOrder) {
+                alert('No hay pedido pendiente para confirmar.');
+                return;
+            }
+            
             // Ocultar ambas confirmaciones primero
             successConfirmation.classList.add('d-none');
             errorConfirmation.classList.add('d-none');
             retryBtn.classList.add('d-none');
+            proceedToPaymentBtn.classList.add('d-none');
             confirmOrderBtn.classList.remove('d-none');
             
-            // Simular proceso de confirmación (con retardo para simular llamada a API)
+            // Simular proceso de confirmación
             confirmOrderBtn.disabled = true;
             confirmOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
             
@@ -258,23 +320,50 @@
                 confirmOrderBtn.disabled = false;
                 confirmOrderBtn.innerHTML = '<i class="fas fa-check me-2"></i>Confirmar Pedido';
                 
-                // Simular fallo aleatorio (30% de probabilidad de error)
-                const isSuccess = Math.random() > 0.3 || attemptCount >= 2;
+                // Simular fallo aleatorio (20% de probabilidad de error)
+                const isSuccess = Math.random() > 0.2 || attemptCount >= 2;
                 
                 if (isSuccess) {
                     // Escenario exitoso
+                    const orderNumber = generateOrderNumber();
+                    confirmedOrder = {
+                        id: orderNumber,
+                        ...pendingOrder,
+                        status: 'pending_payment',
+                        date: new Date().toLocaleDateString('es-CL')
+                    };
+                    
+                    // Guardar pedido confirmado
+                    const existingOrders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
+                    existingOrders.unshift(confirmedOrder); // Agregar al inicio
+                    localStorage.setItem('chocomania_orders', JSON.stringify(existingOrders));
+                    
+                    // Limpiar carrito y pedido pendiente
+                    localStorage.removeItem('chocomaniaCart');
+                    localStorage.removeItem('pendingOrder');
+                    
+                    // Mostrar confirmación exitosa
                     successConfirmation.classList.remove('d-none');
                     errorConfirmation.classList.add('d-none');
+                    confirmedOrderNumber.textContent = orderNumber;
                     retryBtn.classList.add('d-none');
                     confirmOrderBtn.classList.add('d-none');
-                    attemptCount = 0; // Resetear contador
+                    proceedToPaymentBtn.classList.remove('d-none');
+                    attemptCount = 0;
+                    
+                    // Redirigir automáticamente después de 3 segundos
+                    setTimeout(() => {
+                        window.location.href = 'ConfirmacionPago.html';
+                    }, 3000);
+                    
                 } else {
                     // Escenario de error
                     successConfirmation.classList.add('d-none');
                     errorConfirmation.classList.remove('d-none');
                     retryBtn.classList.remove('d-none');
                     confirmOrderBtn.classList.add('d-none');
-                    attemptCount++; // Incrementar contador de intentos
+                    proceedToPaymentBtn.classList.add('d-none');
+                    attemptCount++;
                 }
             }, 2000);
         }
@@ -284,21 +373,25 @@
             confirmOrder();
         }
 
+        // Función para proceder al pago
+        function proceedToPayment() {
+            window.location.href = 'ConfirmacionPago.html';
+        }
+
         // Función para volver al carrito
         function backToCart() {
-            alert('Redirigiendo al carrito de compras...');
-            // En una implementación real, aquí se redirigiría a la página del carrito
+            window.location.href = 'ArmadoPedido.html';
         }
 
         // Función para continuar comprando
         function continueShopping() {
-            alert('Redirigiendo a la tienda...');
-            // En una implementación real, aquí se redirigiría a la página de productos
+            window.location.href = 'Catalogo.html';
         }
 
         // Event Listeners
         confirmOrderBtn.addEventListener('click', confirmOrder);
         retryBtn.addEventListener('click', retryConfirmation);
+        proceedToPaymentBtn.addEventListener('click', proceedToPayment);
         backToCartBtn.addEventListener('click', backToCart);
         continueShoppingBtn.addEventListener('click', continueShopping);
     </script>

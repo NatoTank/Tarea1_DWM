@@ -124,15 +124,23 @@
             font-size: 0.8rem;
             font-weight: bold;
         }
-        .status-processing {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .status-shipped {
+        .status-pago-aceptado {
             background-color: #d1ecf1;
             color: #0c5460;
         }
-        .status-cancelled {
+        .status-procesando {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-enviado {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-entregado {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-cancelado {
             background-color: #f8d7da;
             color: #721c24;
         }
@@ -140,12 +148,15 @@
             background: linear-gradient(135deg, #7B3F00, #A0522D);
             color: white;
         }
-        .error-alert {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
+        .empty-orders {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6c757d;
+        }
+        .empty-orders i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #dee2e6;
         }
     </style>
 </head>
@@ -171,8 +182,18 @@
                     </div>
                     
                     <div class="orders-body">
+                        <!-- Mensaje cuando no hay pedidos -->
+                        <div class="empty-orders d-none" id="emptyOrdersMessage">
+                            <i class="fas fa-box-open"></i>
+                            <h3>No tienes pedidos</h3>
+                            <p>Realiza tu primera compra para ver tus pedidos aquí.</p>
+                            <a href="Catalogo.html" class="btn btn-choco mt-3">
+                                <i class="fas fa-store me-2"></i>Ir a Comprar
+                            </a>
+                        </div>
+
                         <!-- Tabla de Pedidos -->
-                        <div class="table-responsive">
+                        <div class="table-responsive" id="ordersTableContainer">
                             <table class="table table-choco">
                                 <thead>
                                     <tr>
@@ -243,61 +264,56 @@
         // Cargar pedidos desde localStorage
         const orders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
         const ordersTableBody = document.getElementById('ordersTableBody');
+        const ordersTableContainer = document.getElementById('ordersTableContainer');
+        const emptyOrdersMessage = document.getElementById('emptyOrdersMessage');
         
         console.log('Pedidos cargados:', orders); // Para debug
         
-        // Si no hay pedidos, mostrar algunos de ejemplo
+        // Si no hay pedidos, mostrar mensaje
         if (orders.length === 0) {
-            ordersTableBody.innerHTML = `
-                <tr>
-                    <td><strong>#CM202400001</strong></td>
-                    <td>15/04/2024</td>
-                    <td class="text-end">$524.970</td>
-                    <td class="text-center">
-                        <span class="status-badge status-processing">Procesando</span>
-                    </td>
-                    <td class="text-center">
-                        <button class="btn btn-danger-small cancel-btn" data-order="#CM202400001">
-                            <i class="fas fa-times me-1"></i>Cancelar
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#CM202400000</strong></td>
-                    <td>10/03/2024</td>
-                    <td class="text-end">$518.500</td>
-                    <td class="text-center">
-                        <span class="status-badge status-shipped">Enviado</span>
-                    </td>
-                    <td class="text-center">
-                        <button class="btn btn-disabled" disabled>
-                            <i class="fas fa-times me-1"></i>Cancelar
-                        </button>
-                    </td>
-                </tr>
-            `;
+            ordersTableContainer.classList.add('d-none');
+            emptyOrdersMessage.classList.remove('d-none');
         } else {
+            ordersTableContainer.classList.remove('d-none');
+            emptyOrdersMessage.classList.add('d-none');
+            
             // Mostrar pedidos reales desde localStorage
             ordersTableBody.innerHTML = '';
             orders.forEach(order => {
-                const isProcessing = order.estado === 'Procesando';
+                // Estados que permiten cancelación: PAGO ACEPTADO, Procesando
+                const canCancel = order.status === 'PAGO ACEPTADO' || order.status === 'Procesando' || order.status === 'pending_payment';
+                
+                // Estados que NO permiten cancelación: Enviado, Entregado, En tránsito, etc.
+                const cannotCancel = order.status === 'Enviado' || order.status === 'Entregado' || order.status === 'En tránsito';
+                
+                // Determinar clase CSS para el estado
+                let statusClass = 'status-procesando';
+                if (order.status === 'PAGO ACEPTADO') statusClass = 'status-pago-aceptado';
+                else if (order.status === 'Enviado') statusClass = 'status-enviado';
+                else if (order.status === 'Entregado') statusClass = 'status-entregado';
+                else if (order.status === 'Cancelado') statusClass = 'status-cancelado';
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${order.id}</strong></td>
-                    <td>${order.fecha}</td>
+                    <td>${order.date}</td>
                     <td class="text-end">$${order.total.toLocaleString('es-CL')}</td>
                     <td class="text-center">
-                        <span class="status-badge ${isProcessing ? 'status-processing' : 'status-shipped'}">
-                            ${order.estado}
+                        <span class="status-badge ${statusClass}">
+                            ${order.status}
                         </span>
                     </td>
                     <td class="text-center">
-                        ${isProcessing ? 
+                        ${canCancel ? 
                             `<button class="btn btn-danger-small cancel-btn" data-order="${order.id}">
                                 <i class="fas fa-times me-1"></i>Cancelar
                             </button>` : 
+                            cannotCancel ?
+                            `<button class="btn btn-disabled" disabled title="No se puede cancelar pedidos en tránsito">
+                                <i class="fas fa-shipping-fast me-1"></i>En tránsito
+                            </button>` :
                             `<button class="btn btn-disabled" disabled>
-                                <i class="fas fa-times me-1"></i>Cancelar
+                                <i class="fas fa-times me-1"></i>Cancelado
                             </button>`
                         }
                     </td>
@@ -306,7 +322,7 @@
             });
         }
 
-        // El resto del código del modal (tu código original)
+        // Configuración del modal de cancelación
         const cancelModalElement = document.getElementById('cancelModal');
         const modalOrderNumber = document.getElementById('modalOrderNumber');
         const confirmCancelBtn = document.getElementById('confirmCancelBtn');
@@ -351,7 +367,13 @@
                 const orders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
                 const updatedOrders = orders.map(order => {
                     if (order.id === currentOrderToCancel) {
-                        return { ...order, estado: 'Cancelado' };
+                        return { 
+                            ...order, 
+                            status: 'Cancelado',
+                            cancelReason: cancelReason.value,
+                            cancelExplanation: cancelExplanation.value,
+                            cancelDate: new Date().toLocaleDateString('es-CL')
+                        };
                     }
                     return order;
                 });
@@ -363,7 +385,7 @@
                     const orderCell = row.cells[0].querySelector('strong');
                     if (orderCell && orderCell.textContent === currentOrderToCancel) {
                         const statusCell = row.cells[3];
-                        statusCell.innerHTML = '<span class="status-badge status-cancelled">Cancelado</span>';
+                        statusCell.innerHTML = '<span class="status-badge status-cancelado">Cancelado</span>';
                         
                         const actionCell = row.cells[4];
                         actionCell.innerHTML = '<button class="btn btn-disabled" disabled><i class="fas fa-times me-1"></i>Cancelado</button>';

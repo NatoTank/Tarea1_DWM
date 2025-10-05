@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Chocomanía - Carrito de Compras</title>
+    <title>Chocomanía - Vaciado del Carrito</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -115,6 +115,10 @@
             padding: 40px;
             color: #6c757d;
         }
+        .modal-choco .modal-header {
+            background: linear-gradient(135deg, #7B3F00, #A0522D);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -127,7 +131,7 @@
     </div>
 
     <div class="container">
-        <h1 class="section-title">MI CARRITO DE COMPRAS</h1>
+        <h1 class="section-title">VACIADO DEL CARRITO</h1>
         
         <!-- Tarjeta del Carrito -->
         <div class="row justify-content-center">
@@ -135,7 +139,7 @@
                 <div class="cart-card">
                     <div class="cart-header text-center">
                         <h3><i class="fas fa-shopping-cart me-2"></i>Productos en el Carrito</h3>
-                        <p class="mb-0">Revisa y gestiona tus productos</p>
+                        <p class="mb-0">Revisa y gestiona tus productos antes de vaciar</p>
                     </div>
                     
                     <div class="cart-body">
@@ -228,23 +232,16 @@
     </div>
 
     <script>
-        // Datos del carrito
-        let cartItems = [
-            {
-                id: 1,
-                name: "Tableta Chocolate Amargo",
-                description: "Chocolate premium 70% cacao",
-                price: 55990,
-                quantity: 2
-            },
-            {
-                id: 2,
-                name: "Caja Bombones Surtidos",
-                description: "Selección surtida de bombones",
-                price: 12990,
-                quantity: 1
-            }
-        ];
+        // Función para obtener el carrito desde localStorage
+        function getCart() {
+            const cart = localStorage.getItem('chocomaniaCart');
+            return cart ? JSON.parse(cart) : [];
+        }
+
+        // Función para guardar el carrito en localStorage
+        function saveCart(cart) {
+            localStorage.setItem('chocomaniaCart', JSON.stringify(cart));
+        }
 
         // Función para formatear precios
         function formatPrice(price) {
@@ -253,21 +250,24 @@
 
         // Función para calcular el total del carrito
         function calculateCartTotal() {
-            return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const cart = getCart();
+            return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
         }
 
         // Función para renderizar los productos del carrito
         function renderCartItems() {
             const cartItemsContainer = document.getElementById('cartItems');
+            const cart = getCart();
+            
             cartItemsContainer.innerHTML = '';
             
-            cartItems.forEach(item => {
+            cart.forEach(item => {
                 const subtotal = item.price * item.quantity;
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
                         <strong>${item.name}</strong>
-                        <div class="text-muted small">${item.description}</div>
+                        <div class="text-muted small">Código: ${item.id}</div>
                     </td>
                     <td class="text-center">
                         <div class="d-flex align-items-center justify-content-center">
@@ -298,9 +298,10 @@
             const totalSection = document.getElementById('totalSection');
             const actionButtons = document.getElementById('actionButtons');
             const emptyCartMessage = document.getElementById('emptyCartMessage');
+            const cart = getCart();
             
             // Si el carrito está vacío
-            if (cartItems.length === 0) {
+            if (cart.length === 0) {
                 cartTableContainer.classList.add('d-none');
                 totalSection.classList.add('d-none');
                 actionButtons.classList.add('d-none');
@@ -319,31 +320,38 @@
 
         // Funciones para manejar cantidades
         function increaseQuantity(itemId) {
-            const item = cartItems.find(item => item.id === itemId);
+            const cart = getCart();
+            const item = cart.find(item => item.id === itemId);
             if (item) {
                 item.quantity++;
+                saveCart(cart);
                 updateCartView();
             }
         }
 
         function decreaseQuantity(itemId) {
-            const item = cartItems.find(item => item.id === itemId);
+            const cart = getCart();
+            const item = cart.find(item => item.id === itemId);
             if (item && item.quantity > 1) {
                 item.quantity--;
+                saveCart(cart);
                 updateCartView();
             }
         }
 
-        // Función para eliminar producto individual
+        // Función para eliminar producto individual (Escenario Gherkin: Eliminación individual)
         function removeItem(itemId) {
-            cartItems = cartItems.filter(item => item.id !== itemId);
+            const cart = getCart();
+            const newCart = cart.filter(item => item.id !== itemId);
+            saveCart(newCart);
             updateCartView();
             alert('Producto eliminado del carrito.');
         }
 
         // Función para mostrar modal de vaciado
         function showClearCartModal() {
-            if (cartItems.length === 0) {
+            const cart = getCart();
+            if (cart.length === 0) {
                 alert('El carrito ya está vacío.');
                 return;
             }
@@ -351,27 +359,44 @@
             modal.show();
         }
 
-        // Función para vaciar carrito
+        // Función para vaciar carrito (Escenario Gherkin: Vaciado total del carrito)
         function clearCart() {
-            cartItems = [];
+            saveCart([]);
             updateCartView();
             const modal = bootstrap.Modal.getInstance(document.getElementById('clearCartModal'));
             modal.hide();
             alert('El carrito ha sido vaciado completamente.');
+            
+            // Redirigir al carrito principal después de 2 segundos
+            setTimeout(() => {
+                window.location.href = 'ArmadoPedido.html';
+            }, 2000);
         }
 
         // Función para continuar comprando
         function continueShopping() {
-            alert('Redirigiendo a la tienda...');
+            window.location.href = 'Catalogo.html';
         }
 
         // Función para confirmar pedido
         function confirmOrder() {
-            if (cartItems.length === 0) {
+            const cart = getCart();
+            if (cart.length === 0) {
                 alert('El carrito está vacío. Agrega productos antes de confirmar.');
                 return;
             }
-            alert('Redirigiendo a confirmación de pedido...');
+            
+            // Guardar el pedido temporalmente para pasarlo a ConfirmacionPedido.html
+            const orderData = {
+                items: [...cart],
+                total: calculateCartTotal(),
+                date: new Date().toLocaleDateString('es-CL'),
+                customer: 'Castellón Prado Salvador'
+            };
+            localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+            
+            // Redirigir a ConfirmacionPedido.html
+            window.location.href = 'ConfirmacionPedido.html';
         }
 
         // Inicializar la vista del carrito

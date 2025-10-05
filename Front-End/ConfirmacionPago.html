@@ -112,6 +112,10 @@
             background-color: #d4edda;
             color: #155724;
         }
+        .status-processing {
+            background-color: #fff3cd;
+            color: #856404;
+        }
         .product-list {
             list-style: none;
             padding: 0;
@@ -122,6 +126,9 @@
         }
         .product-list li:last-child {
             border-bottom: none;
+        }
+        .progress-bar-choco {
+            background-color: #7B3F00 !important;
         }
     </style>
 </head>
@@ -154,21 +161,14 @@
                                 </div>
                                 <h4 class="text-muted mb-4">Procesando tu transacción...</h4>
                                 
-                                <div class="receipt-box text-start">
-                                    <h5 class="mb-3">Resumen del Pedido:</h5>
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <p><strong>N° Pedido:</strong> 5CJXD2400001</p>
-                                            <p><strong>Total:</strong> $524.970</p>
-                                            <p><strong>Método:</strong> Tarjeta de Crédito</p>
-                                        </div>
-                                    </div>
+                                <div class="receipt-box text-start" id="paymentSummary">
+                                    <!-- El resumen se cargará dinámicamente -->
                                 </div>
                                 
                                 <div class="mt-4">
                                     <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-choco" 
-                                             role="progressbar" style="width: 0%; background-color: #7B3F00;" 
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated progress-bar-choco" 
+                                             role="progressbar" style="width: 0%;" 
                                              id="paymentProgress"></div>
                                     </div>
                                     <small class="text-muted">Procesando transacción...</small>
@@ -188,7 +188,7 @@
                 <div class="col-12 col-lg-10">
                     <div class="payment-card">
                         <div class="payment-header text-center">
-                            <h3><i class="fas fa-check-circle me-2"></i>¡Tu pago ha sido aprobado exitosamente!</h3>
+                            <h3><i class="fas fa-check-circle me-2"></i>¡Pago Aceptado Exitosamente!</h3>
                             <p class="mb-0">COMPROBANTE DE PAGO</p>
                         </div>
                         
@@ -197,13 +197,13 @@
                             <div class="receipt-box mb-4">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <p><strong>N° Pedido:</strong> 5CJXD2400001</p>
-                                        <p><strong>Fecha:</strong> 15/03/2024 14:30</p>
+                                        <p><strong>N° Pedido:</strong> <span id="confirmedOrderId">Cargando...</span></p>
+                                        <p><strong>Fecha:</strong> <span id="paymentDate">Cargando...</span></p>
                                         <p><strong>Método:</strong> Tarjeta de Crédito</p>
                                     </div>
                                     <div class="col-md-6 text-md-end">
-                                        <p><strong>Estado:</strong> <span class="status-badge status-approved">APROBADO</span></p>
-                                        <p><strong>Total:</strong> $524.970</p>
+                                        <p><strong>Estado:</strong> <span class="status-badge status-processing">PAGO ACEPTADO</span></p>
+                                        <p><strong>Total:</strong> $<span id="paymentTotal">0</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -211,25 +211,13 @@
                             <!-- Confirmación por Email -->
                             <div class="email-confirmation">
                                 <h5><i class="fas fa-envelope me-2"></i>Confirmación de Pago - Chocomanía</h5>
-                                <p class="mb-2">Hola <strong>Castellón Prado Salvador</strong>.</p>
+                                <p class="mb-2">Hola <strong id="customerName">Castellón Prado Salvador</strong>.</p>
                                 <p class="mb-3">Tu pago ha sido procesado exitosamente. Aquí los detalles de tu compra:</p>
                                 
                                 <div class="mb-3">
                                     <h6>Detalle del Pedido:</h6>
-                                    <ul class="product-list">
-                                        <li><strong>N° de Pedido:</strong> 5CJXD2400001</li>
-                                        <li><strong>Fecha:</strong> 15/03/2024 14:30</li>
-                                        <li><strong>Total:</strong> $524.970</li>
-                                    </ul>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <h6>Productos:</h6>
-                                    <ul class="product-list">
-                                        <li>2 x Tableta Chocolate Amargo: $111.800</li>
-                                        <li>1 x Caja Bombones Surtidos: $12.990</li>
-                                        <li>1 x Nuestro Chocomanía Avanzado: $54.950</li>
-                                        <li>1 x Caja Beniciones-Santiago: $52.940</li>
+                                    <ul class="product-list" id="paymentProducts">
+                                        <!-- Los productos se cargarán dinámicamente -->
                                     </ul>
                                 </div>
                                 
@@ -264,6 +252,61 @@
     </div>
 
     <script>
+        let currentOrder = null;
+
+        // Cargar datos del pedido al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            const orders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
+            
+            // Buscar el pedido más reciente que esté pendiente de pago
+            currentOrder = orders.find(order => order.status === 'pending_payment');
+            
+            if (!currentOrder) {
+                alert('No hay pedido pendiente de pago. Serás redirigido al inicio.');
+                window.location.href = 'Home.html';
+                return;
+            }
+            
+            updatePaymentSummary(currentOrder);
+            simulatePaymentProcessing();
+        });
+
+        // Actualizar resumen del pago
+        function updatePaymentSummary(order) {
+            const paymentSummary = document.getElementById('paymentSummary');
+            const paymentProducts = document.getElementById('paymentProducts');
+            const customerNameElement = document.getElementById('customerName');
+            const confirmedOrderId = document.getElementById('confirmedOrderId');
+            const paymentTotal = document.getElementById('paymentTotal');
+            const paymentDate = document.getElementById('paymentDate');
+            
+            // Actualizar información básica
+            paymentSummary.innerHTML = `
+                <h5 class="mb-3">Resumen del Pedido:</h5>
+                <div class="row">
+                    <div class="col-12">
+                        <p><strong>N° Pedido:</strong> ${order.id}</p>
+                        <p><strong>Total:</strong> $${order.total.toLocaleString('es-CL')}</p>
+                        <p><strong>Método:</strong> Tarjeta de Crédito</p>
+                    </div>
+                </div>
+            `;
+            
+            // Actualizar productos
+            paymentProducts.innerHTML = '';
+            order.items.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${item.quantity} x ${item.name}:</strong> $${(item.price * item.quantity).toLocaleString('es-CL')}`;
+                paymentProducts.appendChild(listItem);
+            });
+            
+            // Actualizar confirmación
+            customerNameElement.textContent = order.customer || 'Cliente';
+            confirmedOrderId.textContent = order.id;
+            paymentTotal.textContent = order.total.toLocaleString('es-CL');
+            paymentDate.textContent = new Date().toLocaleString('es-CL');
+        }
+
         // Simular procesamiento de pago
         function simulatePaymentProcessing() {
             const progressBar = document.getElementById('paymentProgress');
@@ -278,16 +321,33 @@
                 if (progress >= 100) {
                     clearInterval(interval);
                     
+                    // Actualizar estado del pedido a "PAGO ACEPTADO" (se puede cancelar)
+                    updateOrderStatus();
+                    
                     // Mostrar confirmación después de 1 segundo
                     setTimeout(() => {
                         processingScreen.style.display = 'none';
                         confirmationScreen.style.display = 'block';
-                        
-                        // Simular envío de email
-                        console.log('Email enviado al cliente con confirmación de pago');
                     }, 1000);
                 }
             }, 500);
+        }
+
+        // Actualizar estado del pedido a "PAGO ACEPTADO" (se puede cancelar)
+        function updateOrderStatus() {
+            const orders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
+            const updatedOrders = orders.map(order => {
+                if (order.id === currentOrder.id) {
+                    return {
+                        ...order,
+                        status: 'PAGO ACEPTADO', // Estado que permite cancelación
+                        paymentDate: new Date().toLocaleString('es-CL'),
+                        paymentMethod: 'Tarjeta de Crédito'
+                    };
+                }
+                return order;
+            });
+            localStorage.setItem('chocomania_orders', JSON.stringify(updatedOrders));
         }
 
         // Función para descargar comprobante
@@ -298,29 +358,13 @@
 
         // Función para continuar comprando
         function continueShopping() {
-            alert('Redirigiendo a la tienda...');
-            // window.location.href = 'https://www.Chocomania.cl';
+            window.location.href = 'Catalogo.html';
         }
 
         // Función para ver pedidos
         function viewOrders() {
-            alert('Redirigiendo a mis pedidos...');
-            // window.location.href = 'https://www.Chocomania.cl/mis-pedidos';
+            window.location.href = 'CancelacionPedido.html';
         }
-
-        // Iniciar procesamiento cuando la página carga
-        document.addEventListener('DOMContentLoaded', function() {
-            simulatePaymentProcessing();
-        // Cuando se aprueba el pago, actualizar el pedido en localStorage
-        setTimeout(() => {
-            const orders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
-            if (orders.length > 0) {
-                // El primer pedido es el más reciente (que acaba de pagarse)
-                orders[0].estado = 'Procesando'; // Mantener como procesando para poder cancelar
-                localStorage.setItem('chocomania_orders', JSON.stringify(orders));
-            }
-        }, 2000); // Después de que se complete el procesamiento
-        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
