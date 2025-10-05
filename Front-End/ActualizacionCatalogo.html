@@ -134,6 +134,24 @@
       font-size: 3rem;
       background-color: #f5e6d3;
     }
+    .cart-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+      background: #28a745;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -144,8 +162,25 @@
     </div>
   </div>
 
+  <!-- Notificación de carrito -->
+  <div class="cart-notification" id="cartNotification">
+    <i class="fas fa-check-circle me-2"></i>
+    <span id="notificationMessage">Producto agregado al carrito</span>
+  </div>
+
   <div class="container">
     <h1 class="catalog-title">CATÁLOGO CON STOCK EN TIEMPO REAL</h1>
+    
+    <!-- Barra de navegación adicional -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <a href="home.html" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+      </a>
+      <a href="ArmadoPedido.html" class="btn btn-choco position-relative">
+        <i class="fas fa-shopping-cart me-2"></i>Ver Carrito
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartBadge">0</span>
+      </a>
+    </div>
     
     <!-- Filtros -->
     <div class="filter-section">
@@ -278,6 +313,76 @@
     // Variables para filtros
     let filteredProducts = [...products];
 
+    // Función para obtener el carrito desde localStorage
+    function getCart() {
+      const cart = localStorage.getItem('chocomaniaCart');
+      return cart ? JSON.parse(cart) : [];
+    }
+
+    // Función para actualizar el badge del carrito
+    function updateCartBadge() {
+      const cart = getCart();
+      const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+      document.getElementById('cartBadge').textContent = totalItems;
+    }
+
+    // Función para mostrar notificación
+    function showNotification(message) {
+      const notification = document.getElementById('cartNotification');
+      const messageElement = document.getElementById('notificationMessage');
+      
+      messageElement.textContent = message;
+      notification.style.display = 'block';
+      
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 3000);
+    }
+
+    // Función para agregar producto al carrito
+    function addToCart(productId) {
+      const cart = getCart();
+      const product = products.find(p => p.id === productId);
+      
+      if (!product) return;
+      
+      // Verificar stock disponible
+      if (product.stock === 0) {
+        showNotification(`${product.name} está agotado`);
+        return;
+      }
+      
+      // Verificar si el producto ya está en el carrito
+      const existingItem = cart.find(item => item.id === productId);
+      
+      if (existingItem) {
+        // Verificar que no exceda el stock disponible
+        if (existingItem.quantity < product.stock) {
+          existingItem.quantity += 1;
+        } else {
+          showNotification(`No hay suficiente stock de ${product.name}`);
+          return;
+        }
+      } else {
+        cart.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity: 1
+        });
+      }
+      
+      // Guardar en localStorage
+      localStorage.setItem('chocomaniaCart', JSON.stringify(cart));
+      
+      // Actualizar badge
+      updateCartBadge();
+      
+      // Mostrar notificación
+      showNotification(`${product.name} agregado al carrito`);
+    }
+
     // Función para formatear precio en CLP
     function formatPrice(price) {
       return new Intl.NumberFormat('es-CL', {
@@ -334,7 +439,9 @@
               <div class="stock-info ${stockStatus.class}">
                 <i class="fas fa-${product.stock > 0 ? 'check-circle' : 'times-circle'}"></i> ${stockStatus.text}
               </div>
-              <button class="btn btn-choco mt-2 w-100" ${product.stock === 0 ? 'disabled' : ''}>
+              <button class="btn btn-choco mt-2 w-100 add-to-cart-btn" 
+                      data-product-id="${product.id}"
+                      ${product.stock === 0 ? 'disabled' : ''}>
                 <i class="fas fa-shopping-cart"></i> 
                 ${product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
               </button>
@@ -343,6 +450,14 @@
         `;
         
         container.appendChild(col);
+      });
+      
+      // Agregar event listeners a los botones de carrito
+      document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const productId = parseInt(this.getAttribute('data-product-id'));
+          addToCart(productId);
+        });
       });
     }
 
@@ -395,7 +510,8 @@
     document.getElementById('categoryFilter').addEventListener('change', filterProducts);
     document.getElementById('stockFilter').addEventListener('change', filterProducts);
 
-    // Inicializar catálogo
+    // Inicializar catálogo y carrito
+    updateCartBadge();
     renderProducts();
     
     // Iniciar simulación de actualización de stock

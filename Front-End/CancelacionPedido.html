@@ -184,51 +184,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="ordersTableBody">
-                                    <tr>
-                                        <td>
-                                            <strong>#CM202400001</strong>
-                                        </td>
-                                        <td>15/04/2024</td>
-                                        <td class="text-end">$524.970</td>
-                                        <td class="text-center">
-                                            <span class="status-badge status-processing">Procesando</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <button class="btn btn-danger-small cancel-btn" data-order="#CM202400001">
-                                                <i class="fas fa-times me-1"></i>Cancelar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong>#CM202400000</strong>
-                                        </td>
-                                        <td>10/03/2024</td>
-                                        <td class="text-end">$518.500</td>
-                                        <td class="text-center">
-                                            <span class="status-badge status-shipped">Enviado</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <button class="btn btn-disabled" disabled>
-                                                <i class="fas fa-times me-1"></i>Cancelar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong>#CM202400002</strong>
-                                        </td>
-                                        <td>12/04/2024</td>
-                                        <td class="text-end">$345.200</td>
-                                        <td class="text-center">
-                                            <span class="status-badge status-processing">Procesando</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <button class="btn btn-danger-small cancel-btn" data-order="#CM202400002">
-                                                <i class="fas fa-times me-1"></i>Cancelar
-                                            </button>
-                                        </td>
-                                    </tr>
+                                    <!-- Los pedidos se cargarán desde localStorage -->
                                 </tbody>
                             </table>
                         </div>
@@ -282,94 +238,154 @@
     <!-- Move Bootstrap script here, before our custom code -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementos del DOM
-            const ordersTableBody = document.getElementById('ordersTableBody');
-            const cancelModalElement = document.getElementById('cancelModal');
-            const modalOrderNumber = document.getElementById('modalOrderNumber');
-            const confirmCancelBtn = document.getElementById('confirmCancelBtn');
-            const cancelReason = document.getElementById('cancelReason');
-            const cancelExplanation = document.getElementById('cancelExplanation');
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cargar pedidos desde localStorage
+        const orders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        
+        console.log('Pedidos cargados:', orders); // Para debug
+        
+        // Si no hay pedidos, mostrar algunos de ejemplo
+        if (orders.length === 0) {
+            ordersTableBody.innerHTML = `
+                <tr>
+                    <td><strong>#CM202400001</strong></td>
+                    <td>15/04/2024</td>
+                    <td class="text-end">$524.970</td>
+                    <td class="text-center">
+                        <span class="status-badge status-processing">Procesando</span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-danger-small cancel-btn" data-order="#CM202400001">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#CM202400000</strong></td>
+                    <td>10/03/2024</td>
+                    <td class="text-end">$518.500</td>
+                    <td class="text-center">
+                        <span class="status-badge status-shipped">Enviado</span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-disabled" disabled>
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
+                    </td>
+                </tr>
+            `;
+        } else {
+            // Mostrar pedidos reales desde localStorage
+            ordersTableBody.innerHTML = '';
+            orders.forEach(order => {
+                const isProcessing = order.estado === 'Procesando';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${order.id}</strong></td>
+                    <td>${order.fecha}</td>
+                    <td class="text-end">$${order.total.toLocaleString('es-CL')}</td>
+                    <td class="text-center">
+                        <span class="status-badge ${isProcessing ? 'status-processing' : 'status-shipped'}">
+                            ${order.estado}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        ${isProcessing ? 
+                            `<button class="btn btn-danger-small cancel-btn" data-order="${order.id}">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </button>` : 
+                            `<button class="btn btn-disabled" disabled>
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </button>`
+                        }
+                    </td>
+                `;
+                ordersTableBody.appendChild(row);
+            });
+        }
 
-            // Asegurarnos que Bootstrap está disponible
-            if (typeof bootstrap === 'undefined') {
-                console.error('Bootstrap no está cargado');
+        // El resto del código del modal (tu código original)
+        const cancelModalElement = document.getElementById('cancelModal');
+        const modalOrderNumber = document.getElementById('modalOrderNumber');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const cancelReason = document.getElementById('cancelReason');
+        const cancelExplanation = document.getElementById('cancelExplanation');
+
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap no está cargado');
+            return;
+        }
+
+        const cancelModal = new bootstrap.Modal(cancelModalElement);
+        let currentOrderToCancel = null;
+
+        function handleCancelClick(event) {
+            const button = event.currentTarget;
+            const orderNumber = button.getAttribute('data-order');
+            currentOrderToCancel = orderNumber;
+            
+            cancelReason.value = "";
+            cancelExplanation.value = "";
+            
+            modalOrderNumber.textContent = orderNumber;
+            cancelModal.show();
+        }
+
+        document.querySelectorAll('.cancel-btn').forEach(button => {
+            button.addEventListener('click', handleCancelClick);
+        });
+
+        confirmCancelBtn.addEventListener('click', function() {
+            if (!cancelReason.value) {
+                alert('Por favor, seleccione un motivo de cancelación.');
                 return;
             }
-
-            // Inicializar el modal de Bootstrap
-            const cancelModal = new bootstrap.Modal(cancelModalElement);
-
-            let currentOrderToCancel = null;
-
-            // Función para manejar la cancelación de pedidos
-            function handleCancelClick(event) {
-                const button = event.currentTarget;
-                const orderNumber = button.getAttribute('data-order');
-                currentOrderToCancel = orderNumber;
+            
+            confirmCancelBtn.disabled = true;
+            confirmCancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+            
+            setTimeout(() => {
+                // Actualizar en localStorage
+                const orders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
+                const updatedOrders = orders.map(order => {
+                    if (order.id === currentOrderToCancel) {
+                        return { ...order, estado: 'Cancelado' };
+                    }
+                    return order;
+                });
+                localStorage.setItem('chocomania_orders', JSON.stringify(updatedOrders));
                 
-                // Resetear el formulario
-                cancelReason.value = "";
-                cancelExplanation.value = "";
-                
-                // Mostrar modal de confirmación
-                modalOrderNumber.textContent = orderNumber;
-                cancelModal.show();
-            }
-
-            // Configurar los botones de cancelación
-            document.querySelectorAll('.cancel-btn').forEach(button => {
-                button.addEventListener('click', handleCancelClick);
-            });
-
-            // Función para confirmar la cancelación
-            confirmCancelBtn.addEventListener('click', function() {
-                if (!cancelReason.value) {
-                    alert('Por favor, seleccione un motivo de cancelación.');
-                    return;
+                // Actualizar la tabla
+                const rows = ordersTableBody.getElementsByTagName('tr');
+                for (let row of rows) {
+                    const orderCell = row.cells[0].querySelector('strong');
+                    if (orderCell && orderCell.textContent === currentOrderToCancel) {
+                        const statusCell = row.cells[3];
+                        statusCell.innerHTML = '<span class="status-badge status-cancelled">Cancelado</span>';
+                        
+                        const actionCell = row.cells[4];
+                        actionCell.innerHTML = '<button class="btn btn-disabled" disabled><i class="fas fa-times me-1"></i>Cancelado</button>';
+                        break;
+                    }
                 }
                 
-                // Simular proceso de cancelación
-                confirmCancelBtn.disabled = true;
-                confirmCancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
-                
-                setTimeout(() => {
-                    // Buscar la fila del pedido a cancelar
-                    const rows = ordersTableBody.getElementsByTagName('tr');
-                    
-                    for (let row of rows) {
-                        const orderCell = row.cells[0].querySelector('strong');
-                        if (orderCell && orderCell.textContent === currentOrderToCancel) {
-                            // Actualizar el estado
-                            const statusCell = row.cells[3];
-                            statusCell.innerHTML = '<span class="status-badge status-cancelled">Cancelado</span>';
-                            
-                            // Actualizar el botón
-                            const actionCell = row.cells[4];
-                            actionCell.innerHTML = '<button class="btn btn-disabled" disabled><i class="fas fa-times me-1"></i>Cancelado</button>';
-                            break;
-                        }
-                    }
-                    
-                    // Cerrar modal y resetear
-                    cancelModal.hide();
-                    confirmCancelBtn.disabled = false;
-                    confirmCancelBtn.innerHTML = 'Confirmar Cancelación';
-                    
-                    // Mostrar mensaje de éxito
-                    alert(`El pedido ${currentOrderToCancel} ha sido cancelado exitosamente.`);
-                }, 1500);
-            });
-
-            // Limpiar modal al cerrar
-            cancelModalElement.addEventListener('hidden.bs.modal', function () {
-                cancelReason.value = "";
-                cancelExplanation.value = "";
+                cancelModal.hide();
                 confirmCancelBtn.disabled = false;
                 confirmCancelBtn.innerHTML = 'Confirmar Cancelación';
-            });
+                
+                alert(`El pedido ${currentOrderToCancel} ha sido cancelado exitosamente.`);
+            }, 1500);
         });
-    </script>
+
+        cancelModalElement.addEventListener('hidden.bs.modal', function () {
+            cancelReason.value = "";
+            cancelExplanation.value = "";
+            confirmCancelBtn.disabled = false;
+            confirmCancelBtn.innerHTML = 'Confirmar Cancelación';
+        });
+    });
+</script>
 </body>
 </html>

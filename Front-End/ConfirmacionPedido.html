@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Chocomanía - Confirmación de Pago</title>
+    <title>Chocomanía - Confirmación de Pedido</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -29,19 +29,19 @@
             border-bottom: 2px solid #7B3F00;
             padding-bottom: 10px;
         }
-        .payment-card {
+        .order-card {
             background: white;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             margin-bottom: 30px;
             overflow: hidden;
         }
-        .payment-header {
+        .order-header {
             background: linear-gradient(135deg, #7B3F00, #A0522D);
             color: white;
             padding: 20px;
         }
-        .payment-body {
+        .order-body {
             padding: 30px;
         }
         .btn-choco {
@@ -72,27 +72,24 @@
             background-color: #7B3F00;
             color: white;
         }
-        .processing-container {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        .spinner-choco {
-            color: #7B3F00;
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
-        .receipt-box {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        .table-choco {
             border-radius: 10px;
-            padding: 25px;
-            border-left: 4px solid #28a745;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        .email-confirmation {
-            background-color: #e7f3ff;
+        .table-choco thead {
+            background: linear-gradient(135deg, #7B3F00, #A0522D);
+            color: white;
+        }
+        .table-choco tbody tr:hover {
+            background-color: rgba(123, 63, 0, 0.05);
+        }
+        .total-box {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
             border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            border-left: 4px solid #007bff;
+            padding: 15px;
+            color: #155724;
         }
         .artist-info {
             font-size: 0.8rem;
@@ -102,26 +99,24 @@
             padding-top: 15px;
             border-top: 1px solid #dee2e6;
         }
-        .status-badge {
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        .status-approved {
+        .confirmation-success {
             background-color: #d4edda;
-            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
         }
-        .product-list {
-            list-style: none;
-            padding: 0;
+        .confirmation-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
         }
-        .product-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .product-list li:last-child {
-            border-bottom: none;
+        .order-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #7B3F00;
         }
     </style>
 </head>
@@ -135,119 +130,90 @@
     </div>
 
     <div class="container">
-        <!-- Pantalla de Procesamiento -->
-        <div id="processingScreen">
-            <h1 class="section-title">PROCESANDO PAGO</h1>
-            
-            <div class="row justify-content-center">
-                <div class="col-12 col-lg-8">
-                    <div class="payment-card">
-                        <div class="payment-header text-center">
-                            <h3><i class="fas fa-credit-card me-2"></i>Procesando tu Pago</h3>
-                            <p class="mb-0">Por favor, no cierres esta ventana</p>
-                        </div>
-                        
-                        <div class="payment-body">
-                            <div class="processing-container">
-                                <div class="spinner-choco">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                </div>
-                                <h4 class="text-muted mb-4">Procesando tu transacción...</h4>
-                                
-                                <div class="receipt-box text-start">
-                                    <h5 class="mb-3">Resumen del Pedido:</h5>
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <p><strong>N° Pedido:</strong> 5CJXD2400001</p>
-                                            <p><strong>Total:</strong> $524.970</p>
-                                            <p><strong>Método:</strong> Tarjeta de Crédito</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-choco" 
-                                             role="progressbar" style="width: 0%; background-color: #7B3F00;" 
-                                             id="paymentProgress"></div>
-                                    </div>
-                                    <small class="text-muted">Procesando transacción...</small>
-                                </div>
-                            </div>
-                        </div>
+        <h1 class="section-title">RESUMEN DE TU COMPRA</h1>
+        
+        <!-- Tarjeta del Pedido -->
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <div class="order-card">
+                    <div class="order-header text-center">
+                        <h3><i class="fas fa-shopping-bag me-2"></i>Detalles del Pedido</h3>
+                        <p class="mb-0">Revisa los productos que has seleccionado</p>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pantalla de Confirmación -->
-        <div id="confirmationScreen" style="display: none;">
-            <h1 class="section-title">PAGO APROBADO</h1>
-            
-            <div class="row justify-content-center">
-                <div class="col-12 col-lg-10">
-                    <div class="payment-card">
-                        <div class="payment-header text-center">
-                            <h3><i class="fas fa-check-circle me-2"></i>¡Tu pago ha sido aprobado exitosamente!</h3>
-                            <p class="mb-0">COMPROBANTE DE PAGO</p>
+                    
+                    <div class="order-body">
+                        <!-- Tabla de Productos -->
+                        <div class="table-responsive">
+                            <table class="table table-choco">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-end">Precio</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <strong>Tableta Chocolate Amargo</strong>
+                                            <div class="text-muted small">Chocolate 70% cacao</div>
+                                        </td>
+                                        <td class="text-center">2</td>
+                                        <td class="text-end">$55.900</td>
+                                        <td class="text-end">$111.800</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>Caja Bombones Surtidos</strong>
+                                            <div class="text-muted small">Surrido premium de bombones</div>
+                                        </td>
+                                        <td class="text-center">1</td>
+                                        <td class="text-end">$12.900</td>
+                                        <td class="text-end">$12.900</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                         
-                        <div class="payment-body">
-                            <!-- Comprobante de Pago -->
-                            <div class="receipt-box mb-4">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p><strong>N° Pedido:</strong> 5CJXD2400001</p>
-                                        <p><strong>Fecha:</strong> 15/03/2024 14:30</p>
-                                        <p><strong>Método:</strong> Tarjeta de Crédito</p>
-                                    </div>
-                                    <div class="col-md-6 text-md-end">
-                                        <p><strong>Estado:</strong> <span class="status-badge status-approved">APROBADO</span></p>
-                                        <p><strong>Total:</strong> $524.970</p>
+                        <!-- Total -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end">
+                                    <div class="total-box">
+                                        <h4 class="mb-0">TOTAL: $124.700</h4>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Confirmación por Email -->
-                            <div class="email-confirmation">
-                                <h5><i class="fas fa-envelope me-2"></i>Confirmación de Pago - Chocomanía</h5>
-                                <p class="mb-2">Hola <strong>Castellón Prado Salvador</strong>.</p>
-                                <p class="mb-3">Tu pago ha sido procesado exitosamente. Aquí los detalles de tu compra:</p>
-                                
-                                <div class="mb-3">
-                                    <h6>Detalle del Pedido:</h6>
-                                    <ul class="product-list">
-                                        <li><strong>N° de Pedido:</strong> 5CJXD2400001</li>
-                                        <li><strong>Fecha:</strong> 15/03/2024 14:30</li>
-                                        <li><strong>Total:</strong> $524.970</li>
-                                    </ul>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <h6>Productos:</h6>
-                                    <ul class="product-list">
-                                        <li>2 x Tableta Chocolate Amargo: $111.800</li>
-                                        <li>1 x Caja Bombones Surtidos: $12.990</li>
-                                        <li>1 x Nuestro Chocomanía Avanzado: $54.950</li>
-                                        <li>1 x Caja Beniciones-Santiago: $52.940</li>
-                                    </ul>
-                                </div>
-                                
-                                <p class="mb-0"><strong>Te mantendremos informado sobre el estado de tu envío.</strong></p>
-                                <p class="mb-0 mt-2">¡Gracias por tu compra!</p>
-                                <p class="mb-0"><em>Equipo Chocomanía</em></p>
-                            </div>
-
-                            <!-- Botones de Acción -->
-                            <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
-                                <button class="btn btn-outline-choco" onclick="continueShopping()">
+                        </div>
+                        
+                        <!-- Confirmación Exitosa -->
+                        <div class="confirmation-success d-none" id="successConfirmation">
+                            <h4 class="text-success"><i class="fas fa-check-circle me-2"></i>¡Pedido Confirmado Exitosamente!</h4>
+                            <p class="mb-2">Número de Pedido: <span class="order-number">#CM202400001</span></p>
+                            <p class="mb-0">Hemos enviado un correo electrónico con los detalles de tu pedido. Te mantendremos informado sobre el estado de tu envío.</p>
+                        </div>
+                        
+                        <!-- Error de Confirmación -->
+                        <div class="confirmation-error d-none" id="errorConfirmation">
+                            <h4 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>ERROR DE CONFIRMACIÓN</h4>
+                            <p class="mb-2">Error de conexión. Tu pedido no ha sido registrado. Por favor, intenta nuevamente.</p>
+                        </div>
+                        
+                        <!-- Botones de Acción -->
+                        <div class="d-flex flex-wrap gap-3 justify-content-between mt-4" id="actionButtons">
+                            <button class="btn btn-outline-choco" id="backToCartBtn">
+                                <i class="fas fa-arrow-left me-2"></i>Volver al Carrito
+                            </button>
+                            <div class="d-flex gap-3">
+                                <button class="btn btn-outline-choco" id="continueShoppingBtn">
                                     <i class="fas fa-store me-2"></i>Seguir Comprando
                                 </button>
-                                <button class="btn btn-choco" onclick="downloadReceipt()">
-                                    <i class="fas fa-download me-2"></i>Descargar Comprobante
+                                <button class="btn btn-choco" id="confirmOrderBtn">
+                                    <i class="fas fa-check me-2"></i>Confirmar Pedido
                                 </button>
-                                <button class="btn btn-outline-choco" onclick="viewOrders()">
-                                    <i class="fas fa-list me-2"></i>Ver Mis Pedidos
+                                <button class="btn btn-choco d-none" id="retryBtn">
+                                    <i class="fas fa-redo me-2"></i>Reintentar Confirmación
                                 </button>
                             </div>
                         </div>
@@ -264,54 +230,77 @@
     </div>
 
     <script>
-        // Simular procesamiento de pago
-        function simulatePaymentProcessing() {
-            const progressBar = document.getElementById('paymentProgress');
-            const processingScreen = document.getElementById('processingScreen');
-            const confirmationScreen = document.getElementById('confirmationScreen');
+        // Elementos del DOM
+        const successConfirmation = document.getElementById('successConfirmation');
+        const errorConfirmation = document.getElementById('errorConfirmation');
+        const confirmOrderBtn = document.getElementById('confirmOrderBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        const backToCartBtn = document.getElementById('backToCartBtn');
+        const continueShoppingBtn = document.getElementById('continueShoppingBtn');
+        const actionButtons = document.getElementById('actionButtons');
+
+        // Variable para controlar intentos
+        let attemptCount = 0;
+
+        // Función para simular confirmación de pedido
+        function confirmOrder() {
+            // Ocultar ambas confirmaciones primero
+            successConfirmation.classList.add('d-none');
+            errorConfirmation.classList.add('d-none');
+            retryBtn.classList.add('d-none');
+            confirmOrderBtn.classList.remove('d-none');
             
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                progressBar.style.width = progress + '%';
+            // Simular proceso de confirmación (con retardo para simular llamada a API)
+            confirmOrderBtn.disabled = true;
+            confirmOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+            
+            setTimeout(() => {
+                confirmOrderBtn.disabled = false;
+                confirmOrderBtn.innerHTML = '<i class="fas fa-check me-2"></i>Confirmar Pedido';
                 
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    
-                    // Mostrar confirmación después de 1 segundo
-                    setTimeout(() => {
-                        processingScreen.style.display = 'none';
-                        confirmationScreen.style.display = 'block';
-                        
-                        // Simular envío de email
-                        console.log('Email enviado al cliente con confirmación de pago');
-                    }, 1000);
+                // Simular fallo aleatorio (30% de probabilidad de error)
+                const isSuccess = Math.random() > 0.3 || attemptCount >= 2;
+                
+                if (isSuccess) {
+                    // Escenario exitoso
+                    successConfirmation.classList.remove('d-none');
+                    errorConfirmation.classList.add('d-none');
+                    retryBtn.classList.add('d-none');
+                    confirmOrderBtn.classList.add('d-none');
+                    attemptCount = 0; // Resetear contador
+                } else {
+                    // Escenario de error
+                    successConfirmation.classList.add('d-none');
+                    errorConfirmation.classList.remove('d-none');
+                    retryBtn.classList.remove('d-none');
+                    confirmOrderBtn.classList.add('d-none');
+                    attemptCount++; // Incrementar contador de intentos
                 }
-            }, 500);
+            }, 2000);
         }
 
-        // Función para descargar comprobante
-        function downloadReceipt() {
-            alert('Descargando comprobante de pago...');
-            // En una implementación real, aquí se generaría el PDF
+        // Función para reintentar confirmación
+        function retryConfirmation() {
+            confirmOrder();
+        }
+
+        // Función para volver al carrito
+        function backToCart() {
+            alert('Redirigiendo al carrito de compras...');
+            // En una implementación real, aquí se redirigiría a la página del carrito
         }
 
         // Función para continuar comprando
         function continueShopping() {
             alert('Redirigiendo a la tienda...');
-            // window.location.href = 'https://www.Chocomania.cl';
+            // En una implementación real, aquí se redirigiría a la página de productos
         }
 
-        // Función para ver pedidos
-        function viewOrders() {
-            alert('Redirigiendo a mis pedidos...');
-            // window.location.href = 'https://www.Chocomania.cl/mis-pedidos';
-        }
-
-        // Iniciar procesamiento cuando la página carga
-        document.addEventListener('DOMContentLoaded', function() {
-            simulatePaymentProcessing();
-        });
+        // Event Listeners
+        confirmOrderBtn.addEventListener('click', confirmOrder);
+        retryBtn.addEventListener('click', retryConfirmation);
+        backToCartBtn.addEventListener('click', backToCart);
+        continueShoppingBtn.addEventListener('click', continueShopping);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

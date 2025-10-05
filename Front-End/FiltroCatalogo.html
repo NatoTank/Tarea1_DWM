@@ -205,6 +205,24 @@
       font-size: 0.9rem;
       margin-bottom: 15px;
     }
+    .cart-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+      background: #28a745;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -215,8 +233,25 @@
     </div>
   </div>
 
+  <!-- Notificación de carrito -->
+  <div class="cart-notification" id="cartNotification">
+    <i class="fas fa-check-circle me-2"></i>
+    <span id="notificationMessage">Producto agregado al carrito</span>
+  </div>
+
   <div class="container">
     <h1 class="catalog-title">CATÁLOGO DE CHOCOLATES - FILTROS</h1>
+    
+    <!-- Barra de navegación adicional -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <a href="home.html" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+      </a>
+      <a href="ArmadoPedido.html" class="btn btn-choco position-relative">
+        <i class="fas fa-shopping-cart me-2"></i>Ver Carrito
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartBadge">0</span>
+      </a>
+    </div>
     
     <div class="row">
       <!-- Sidebar de Filtros -->
@@ -446,6 +481,64 @@
       priceRanges: []
     };
 
+    // Función para obtener el carrito desde localStorage
+    function getCart() {
+      const cart = localStorage.getItem('chocomaniaCart');
+      return cart ? JSON.parse(cart) : [];
+    }
+
+    // Función para actualizar el badge del carrito
+    function updateCartBadge() {
+      const cart = getCart();
+      const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+      document.getElementById('cartBadge').textContent = totalItems;
+    }
+
+    // Función para mostrar notificación
+    function showNotification(message) {
+      const notification = document.getElementById('cartNotification');
+      const messageElement = document.getElementById('notificationMessage');
+      
+      messageElement.textContent = message;
+      notification.style.display = 'block';
+      
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 3000);
+    }
+
+    // Función para agregar producto al carrito
+    function addToCart(productId) {
+      const cart = getCart();
+      const product = products.find(p => p.id === productId);
+      
+      if (!product) return;
+      
+      // Verificar si el producto ya está en el carrito
+      const existingItem = cart.find(item => item.id === productId);
+      
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cart.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity: 1
+        });
+      }
+      
+      // Guardar en localStorage
+      localStorage.setItem('chocomaniaCart', JSON.stringify(cart));
+      
+      // Actualizar badge
+      updateCartBadge();
+      
+      // Mostrar notificación
+      showNotification(`${product.name} agregado al carrito`);
+    }
+
     // Función para formatear precio en CLP
     function formatPrice(price) {
       return new Intl.NumberFormat('es-CL', {
@@ -603,7 +696,7 @@
               <h5 class="product-title">${product.name}</h5>
               <div class="product-category">${product.type}</div>
               <div class="product-price">${formatPrice(product.price)}</div>
-              <button class="btn btn-choco mt-2 w-100">
+              <button class="btn btn-choco mt-2 w-100 add-to-cart-btn" data-product-id="${product.id}">
                 <i class="fas fa-shopping-cart"></i> Agregar al carrito
               </button>
             </div>
@@ -617,6 +710,14 @@
         if (imgElement) {
           loadImage(imgElement, product.image, product.id);
         }
+      });
+      
+      // Agregar event listeners a los botones de carrito
+      document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const productId = parseInt(this.getAttribute('data-product-id'));
+          addToCart(productId);
+        });
       });
       
       // Actualizar paginación
@@ -679,7 +780,8 @@
     document.getElementById('clearAllFilters').addEventListener('click', clearAllFilters);
     document.getElementById('resetFilters').addEventListener('click', clearAllFilters);
 
-    // Inicializar catálogo
+    // Inicializar catálogo y carrito
+    updateCartBadge();
     updateActiveFiltersDisplay();
     renderProducts();
   </script>

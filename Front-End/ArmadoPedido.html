@@ -153,7 +153,6 @@
             color: #bd2130;
         }
     </style>
-</head>
 <body>
     <!-- Header -->
     <div class="choco-header text-center">
@@ -277,37 +276,20 @@
     </div>
 
     <script>
-        // Datos del carrito
-        let cartItems = [
-            {
-                id: 1,
-                name: "Nuestro Chocomanía Avanzado",
-                description: "Tableta de chocolate premium",
-                price: 54950,
-                quantity: 1
-            },
-            {
-                id: 2,
-                name: "Caja Beniciones-Santiago",
-                description: "Surrido de bombones artesanales",
-                price: 52940,
-                quantity: 1
-            },
-            {
-                id: 3,
-                name: "Chocolate Avanzado (Tabletas)",
-                description: "Pack de 2 tabletas",
-                price: 105750,
-                quantity: 2
-            },
-            {
-                id: 4,
-                name: "Caja Beniense Avanzada",
-                description: "Edición especial",
-                price: 105750,
-                quantity: 1
-            }
-        ];
+        function generateOrderNumber() {
+            const timestamp = new Date().getTime();
+            return `CM${timestamp}`;
+        }
+        // Función para obtener el carrito desde localStorage
+        function getCart() {
+            const cart = localStorage.getItem('chocomaniaCart');
+            return cart ? JSON.parse(cart) : [];
+        }
+
+        // Función para guardar el carrito en localStorage
+        function saveCart(cart) {
+            localStorage.setItem('chocomaniaCart', JSON.stringify(cart));
+        }
 
         // Elementos del DOM
         const cartItemsContainer = document.getElementById('cartItems');
@@ -331,16 +313,19 @@
 
         // Función para calcular el total del carrito
         function calculateCartTotal() {
-            return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const cart = getCart();
+            return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
         }
 
         // Función para actualizar la vista del carrito
         function updateCartView() {
+            const cart = getCart();
+            
             // Limpiar el contenedor de items
             cartItemsContainer.innerHTML = '';
             
             // Si el carrito está vacío
-            if (cartItems.length === 0) {
+            if (cart.length === 0) {
                 cartTableContainer.classList.add('d-none');
                 totalSection.classList.add('d-none');
                 actionButtons.classList.add('d-none');
@@ -355,13 +340,13 @@
             emptyCartMessage.classList.add('d-none');
             
             // Agregar cada item al carrito
-            cartItems.forEach(item => {
+            cart.forEach(item => {
                 const subtotal = item.price * item.quantity;
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
                         <strong>${item.name}</strong>
-                        <div class="text-muted small">${item.description}</div>
+                        ${item.image ? `<div class="text-muted small">Código: ${item.id}</div>` : ''}
                     </td>
                     <td class="text-center">
                         <div class="quantity-control">
@@ -395,9 +380,11 @@
             document.querySelectorAll('.increase-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const itemId = parseInt(this.getAttribute('data-id'));
-                    const item = cartItems.find(item => item.id === itemId);
+                    const cart = getCart();
+                    const item = cart.find(item => item.id === itemId);
                     if (item) {
                         item.quantity++;
+                        saveCart(cart);
                         updateCartView();
                     }
                 });
@@ -407,9 +394,11 @@
             document.querySelectorAll('.decrease-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const itemId = parseInt(this.getAttribute('data-id'));
-                    const item = cartItems.find(item => item.id === itemId);
+                    const cart = getCart();
+                    const item = cart.find(item => item.id === itemId);
                     if (item && item.quantity > 1) {
                         item.quantity--;
+                        saveCart(cart);
                         updateCartView();
                     }
                 });
@@ -419,11 +408,13 @@
             document.querySelectorAll('.quantity-input').forEach(input => {
                 input.addEventListener('change', function() {
                     const itemId = parseInt(this.getAttribute('data-id'));
-                    const item = cartItems.find(item => item.id === itemId);
+                    const cart = getCart();
+                    const item = cart.find(item => item.id === itemId);
                     if (item) {
                         const newQuantity = parseInt(this.value);
                         if (newQuantity > 0) {
                             item.quantity = newQuantity;
+                            saveCart(cart);
                             updateCartView();
                         } else {
                             this.value = item.quantity;
@@ -436,7 +427,9 @@
             document.querySelectorAll('.remove-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const itemId = parseInt(this.getAttribute('data-id'));
-                    cartItems = cartItems.filter(item => item.id !== itemId);
+                    const cart = getCart();
+                    const newCart = cart.filter(item => item.id !== itemId);
+                    saveCart(newCart);
                     updateCartView();
                 });
             });
@@ -444,13 +437,14 @@
 
         // Función para vaciar el carrito
         clearCartBtn.addEventListener('click', function() {
-            if (cartItems.length === 0) {
+            const cart = getCart();
+            if (cart.length === 0) {
                 alert('El carrito ya está vacío.');
                 return;
             }
             
             if (confirm('¿Estás seguro de que deseas vaciar tu carrito de compras?')) {
-                cartItems = [];
+                saveCart([]);
                 updateCartView();
                 alert('Tu carrito ha sido vaciado.');
             }
@@ -458,14 +452,15 @@
 
         // Función para confirmar el pedido
         confirmOrderBtn.addEventListener('click', function() {
-            if (cartItems.length === 0) {
+            const cart = getCart();
+            if (cart.length === 0) {
                 alert('El carrito está vacío. Agrega productos antes de confirmar el pedido.');
                 return;
             }
             
             // Actualizar el resumen del pedido
             orderSummary.innerHTML = '';
-            cartItems.forEach(item => {
+            cart.forEach(item => {
                 const listItem = document.createElement('li');
                 listItem.innerHTML = `<i class="fas fa-cube me-2"></i>${item.quantity} x ${item.name}: $${formatPrice(item.price * item.quantity)}`;
                 orderSummary.appendChild(listItem);
@@ -481,18 +476,63 @@
             orderConfirmation.scrollIntoView({ behavior: 'smooth' });
             
             // En una implementación real, aquí se enviaría el pedido al servidor
-            console.log('Pedido confirmado:', cartItems);
+            console.log('Pedido confirmado:', cart);
+            
+            // Vaciar el carrito después de confirmar
+            saveCart([]);
+            updateCartView();
+            // Función para confirmar el pedido
+            confirmOrderBtn.addEventListener('click', function() {
+                if (cartItems.length === 0) {
+                    alert('El carrito está vacío. Agrega productos antes de confirmar el pedido.');
+                    return;
+                }
+                
+                // Actualizar el resumen del pedido
+                orderSummary.innerHTML = '';
+                cartItems.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<i class="fas fa-cube me-2"></i>${item.quantity} x ${item.name}: $${formatPrice(item.price * item.quantity)}`;
+                    orderSummary.appendChild(listItem);
+                });
+                
+                // Actualizar el total del pedido
+                orderTotalElement.textContent = formatPrice(calculateCartTotal());
+                
+                // Mostrar confirmación del pedido
+                orderConfirmation.classList.remove('d-none');
+                
+                // Desplazarse suavemente a la confirmación
+                orderConfirmation.scrollIntoView({ behavior: 'smooth' });
+                
+                // === SOLO ESTO ES NUEVO ===
+                // Guardar el pedido para que aparezca en CancelacionPedido.html
+                const orderNumber = generateOrderNumber();
+                const orderData = {
+                    id: orderNumber,
+                    items: [...cartItems],
+                    total: calculateCartTotal(),
+                    date: new Date().toLocaleDateString('es-CL'),
+                    status: 'processing'
+                };
+                
+                // Guardar en localStorage
+                const existingOrders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
+                existingOrders.push(orderData);
+                localStorage.setItem('chocomania_orders', JSON.stringify(existingOrders));
+                // === FIN DE LO NUEVO ===
+                
+                console.log('Pedido confirmado:', cartItems);
+            });
         });
 
         // Función para continuar comprando
         continueShoppingBtn.addEventListener('click', function() {
-            alert('Redirigiendo a la tienda...');
-            // En una implementación real, aquí se redirigiría a la página de productos
+            window.location.href = 'Catalogo.html';
         });
 
         continueShoppingBtn2.addEventListener('click', function() {
-            alert('Redirigiendo a la tienda...');
-            // En una implementación real, aquí se redirigiría a la página de productos
+            window.location.href = 'Catalogo.html';
         });
 
         // Inicializar la vista del carrito
