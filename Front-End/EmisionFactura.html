@@ -217,45 +217,9 @@
 
                     <!-- Botón de Continuar -->
                     <div class="text-center mt-4">
-                        <button class="btn btn-choco btn-lg" onclick="continueToPayment()">
-                            <i class="fas fa-credit-card me-2"></i>Continuar con el Pago
+                        <button class="btn btn-choco btn-lg" onclick="generateDocument()">
+                            <i class="fas fa-file-download me-2"></i>Generar Documento
                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pantalla de Confirmación -->
-        <div id="confirmationScreen" style="display: none;">
-            <h1 class="section-title" id="confirmationTitle">DOCUMENTO GENERADO</h1>
-            
-            <div class="row justify-content-center">
-                <div class="col-12 col-lg-8">
-                    <div class="document-card">
-                        <div class="document-header text-center">
-                            <h3><i class="fas fa-check-circle me-2"></i>¡Documento Generado Exitosamente!</h3>
-                            <p class="mb-0" id="confirmationSubtitle">Tu documento ha sido enviado a tu correo</p>
-                        </div>
-                        
-                        <div class="document-body">
-                            <!-- Email Preview según tipo de documento -->
-                            <div class="email-preview" id="emailPreview">
-                                <!-- Contenido dinámico según boleta/factura -->
-                            </div>
-
-                            <!-- Botones de Acción -->
-                            <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
-                                <button class="btn btn-choco" onclick="downloadDocument()">
-                                    <i class="fas fa-download me-2"></i>Descargar Documento
-                                </button>
-                                <button class="btn btn-outline-choco" onclick="continueShopping()">
-                                    <i class="fas fa-store me-2"></i>Seguir Comprando
-                                </button>
-                                <button class="btn btn-outline-choco" onclick="showSelectionScreen()">
-                                    <i class="fas fa-arrow-left me-2"></i>Volver
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -288,8 +252,10 @@
             }
         }
 
-        // Función para continuar al pago
-        function continueToPayment() {
+        // Función para generar documento - CORREGIDA
+        function generateDocument() {
+            console.log("Generando documento... Tipo seleccionado:", selectedDocument);
+            
             if (selectedDocument === 'invoice') {
                 // Validar campos requeridos para factura
                 const rut = document.getElementById('companyRUT').value;
@@ -300,119 +266,42 @@
                     alert('Por favor complete todos los campos requeridos para la factura.');
                     return;
                 }
-            }
-            
-            // Simular procesamiento de pago exitoso
-            setTimeout(() => {
-                showConfirmationScreen();
-            }, 1000);
-        }
-
-        // Función para mostrar pantalla de confirmación
-        function showConfirmationScreen() {
-            document.getElementById('selectionScreen').style.display = 'none';
-            document.getElementById('confirmationScreen').style.display = 'block';
-            
-            const emailPreview = document.getElementById('emailPreview');
-            const confirmationTitle = document.getElementById('confirmationTitle');
-            const confirmationSubtitle = document.getElementById('confirmationSubtitle');
-            
-            if (selectedDocument === 'invoice') {
-                // Obtener datos reales del formulario
-                const businessName = document.getElementById('businessName').value;
-                const companyRUT = document.getElementById('companyRUT').value;
-                const companyEmail = document.getElementById('companyEmail').value;
-                const companyAddress = document.getElementById('companyAddress').value;
                 
-                // Configurar para factura con datos reales
-                confirmationTitle.textContent = 'FACTURA GENERADA';
-                confirmationSubtitle.textContent = `Su factura ha sido enviada a: ${companyEmail}`;
+                // Guardar datos de factura en localStorage
+                const invoiceData = {
+                    type: 'invoice',
+                    companyRUT: rut,
+                    businessName: businessName,
+                    companyEmail: email,
+                    companyAddress: document.getElementById('companyAddress').value
+                };
+                localStorage.setItem('chocomania_document_type', JSON.stringify(invoiceData));
+                console.log("Datos de factura guardados:", invoiceData);
                 
-                emailPreview.innerHTML = `
-                    <h5><i class="fas fa-envelope me-2"></i>Email - Factura Chocomanía</h5>
-                    <hr>
-                    <p class="mb-2"><strong>Estimada ${businessName},</strong></p>
-                    <p class="mb-3">Adjuntamos su factura digital correspondiente a la compra realizada.</p>
-                    
-                    <div class="mb-3">
-                        <h6>Detalles de la factura:</h6>
-                        <ul class="list-unstyled">
-                            <li><strong>Nº Factura:</strong> F001-789012</li>
-                            <li><strong>RUT:</strong> ${companyRUT}</li>
-                            <li><strong>Razón Social:</strong> ${businessName}</li>
-                            ${companyAddress ? `<li><strong>Dirección:</strong> ${companyAddress}</li>` : ''}
-                            <li><strong>Fecha:</strong> 15/02/2024 14:30</li>
-                            <li><strong>Neto:</strong> $471.100</li>
-                            <li><strong>IVA (19%):</strong> $89.509</li>
-                            <li><strong>Total:</strong> $560.609</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="receipt-preview">
-                        <i class="fas fa-file-invoice-dollar fa-2x text-primary mb-2"></i>
-                        <h6>Factura_Chocomania_F001-789012.pdf</h6>
-                        <small class="text-muted">(Documento tributario electrónico)</small>
-                    </div>
-                    
-                    <p class="mt-3 mb-2"><em>Este documento es válido para todos los efectos tributarios.</em></p>
-                    <p class="mb-0"><strong>¡Gracias por su compra!</strong></p>
-                    <p class="mb-0"><em>Equipo Chocomanía</em></p>
-                `;
             } else {
-                // Configurar para boleta
-                confirmationTitle.textContent = 'BOLETA GENERADA';
-                confirmationSubtitle.textContent = 'Tu boleta ha sido enviada a tu correo';
-                
-                emailPreview.innerHTML = `
-                    <h5><i class="fas fa-envelope me-2"></i>Email - Boleta Chocomanía</h5>
-                    <hr>
-                    <p class="mb-2"><strong>Hola Juan Pérez,</strong></p>
-                    <p class="mb-3">Adjuntamos tu boleta digital correspondiente a la compra realizada.</p>
-                    
-                    <div class="mb-3">
-                        <h6>Detalles de la boleta:</h6>
-                        <ul class="list-unstyled">
-                            <li><strong>Nº Boleta:</strong> B001-123456</li>
-                            <li><strong>Fecha:</strong> 15/02/2024 14:30</li>
-                            <li><strong>RUT:</strong> 12.345.678-9</li>
-                            <li><strong>Monto:</strong> $524.970</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="receipt-preview">
-                        <i class="fas fa-receipt fa-2x text-success mb-2"></i>
-                        <h6>Boleta_Chocomania_B001-123456.pdf</h6>
-                        <small class="text-muted">(Documento tributario electrónico)</small>
-                    </div>
-                    
-                    <p class="mt-3 mb-2"><em>Este documento es válido para todos los efectos tributarios.</em></p>
-                    <p class="mb-0"><strong>¡Gracias por tu compra!</strong></p>
-                    <p class="mb-0"><em>Equipo Chocomanía</em></p>
-                `;
+                // Guardar que es boleta
+                const receiptData = {
+                    type: 'receipt'
+                };
+                localStorage.setItem('chocomania_document_type', JSON.stringify(receiptData));
+                console.log("Datos de boleta guardados:", receiptData);
             }
-        }
-
-        // Función para volver a selección
-        function showSelectionScreen() {
-            document.getElementById('confirmationScreen').style.display = 'none';
-            document.getElementById('selectionScreen').style.display = 'block';
-        }
-
-        // Función para descargar documento
-        function downloadDocument() {
-            const docType = selectedDocument === 'invoice' ? 'Factura' : 'Boleta';
-            const docNumber = selectedDocument === 'invoice' ? 'F001-789012' : 'B001-123456';
-            alert(`Descargando ${docType} ${docNumber}...`);
-        }
-
-        // Función para continuar comprando
-        function continueShopping() {
-            alert('Redirigiendo a la tienda...');
+            
+            // Verificar que se guardó correctamente
+            const savedData = localStorage.getItem('chocomania_document_type');
+            console.log("Datos guardados en localStorage:", savedData);
+            
+            // Redirigir a la página de emisión
+            window.location.href = 'EmisionBoleta.html';
         }
 
         // Inicializar con boleta seleccionada por defecto
         document.addEventListener('DOMContentLoaded', function() {
             selectDocument('receipt');
+            
+            // Limpiar datos previos al cargar la página
+            localStorage.removeItem('chocomania_document_type');
+            console.log("Datos previos limpiados");
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

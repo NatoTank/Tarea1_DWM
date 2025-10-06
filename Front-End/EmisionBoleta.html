@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Chocomanía - Emisión de Boleta</title>
+    <title>Chocomanía - Emisión de Documento</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* [Mantener todos los estilos iguales] */
         body {
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -136,6 +137,20 @@
             font-size: 2rem;
             margin-bottom: 15px;
         }
+        .invoice-details {
+            background: linear-gradient(135deg, #e7f3ff, #d4e6ff);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border-left: 4px solid #007bff;
+        }
+        .system-alert {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
     </style>
 </head>
 <body>
@@ -150,59 +165,80 @@
     <div class="container">
         <!-- Escenario Exitoso -->
         <div id="successScenario">
-            <h1 class="section-title">PAGO EXITOSO</h1>
+            <h1 class="section-title" id="successTitle">PAGO EXITOSO</h1>
             
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-8">
                     <div class="receipt-card">
                         <div class="receipt-header text-center">
                             <h3><i class="fas fa-check-circle me-2"></i>¡Tu pago ha sido procesado exitosamente!</h3>
-                            <p class="mb-0">Boleta Digital Generada</p>
+                            <p class="mb-0" id="documentTypeText">Boleta Digital Generada</p>
                         </div>
                         
                         <div class="receipt-body">
                             <div class="receipt-box text-center">
-                                <h4 class="mb-3">Boleta Digital</h4>
-                                <p class="mb-3">Se ha generado tu boleta digital y será enviada a tu correo electrónico.</p>
+                                <h4 class="mb-3" id="documentTitle">Boleta Digital</h4>
+                                <p class="mb-3" id="documentDescription">Se ha generado tu boleta digital y será enviada a tu correo electrónico.</p>
                                 
                                 <div class="row justify-content-center">
                                     <div class="col-12 col-md-8 text-start">
-                                        <div class="mb-3">
-                                            <p><strong>Nº Boleta:</strong> B001-123456</p>
-                                            <p><strong>Correo:</strong> cliente@ejemplo.com</p>
-                                            <p><strong>Fecha:</strong> 15/09/2024 14:30</p>
-                                            <p><strong>RUT:</strong> 12.345.678-9</p>
-                                            <p><strong>Monto Total:</strong> $324.970</p>
+                                        <div class="mb-3" id="documentDetails">
+                                            <!-- Los detalles se cargarán dinámicamente -->
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="pdf-preview">
-                                    <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
-                                    <h5>Boleta_Chocomania_B001-123456.pdf</h5>
-                                    <p class="text-muted">Documento tributario electrónico</p>
+                                    <i class="fas fa-file-pdf fa-3x text-danger mb-3" id="documentIcon"></i>
+                                    <h5 id="documentFileName">Boleta_Chocomania_B001-123456.pdf</h5>
+                                    <p class="text-muted" id="documentTypeDescription">Documento tributario electrónico</p>
                                     <small class="text-muted">Este documento es válido para todos los efectos tributarios.</small>
+                                </div>
+
+                                <!-- Detalles adicionales para factura -->
+                                <div class="invoice-details" id="invoiceDetails" style="display: none;">
+                                    <h6><i class="fas fa-info-circle me-2"></i>Detalles de Facturación</h6>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <p><strong>Neto:</strong> $471.100</p>
+                                            <p><strong>IVA (19%):</strong> $89.509</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Total:</strong> $560.609</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Simulación de envío de email -->
+                            <!-- Email Preview -->
                             <div class="email-confirmation mt-4">
-                                <div class="processing-container text-center">
-                                    <div class="spinner-choco">
-                                        <i class="fas fa-envelope fa-bounce"></i>
-                                    </div>
-                                    <h5>Enviando boleta a tu correo...</h5>
-                                    <div class="progress mt-3" style="height: 6px;">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%;"></div>
-                                    </div>
-                                    <small class="text-success mt-2">¡Boleta enviada exitosamente!</small>
+                                <h5><i class="fas fa-envelope me-2"></i>Email - <span id="emailDocType">Boleta</span> Chocomanía</h5>
+                                <hr>
+                                <p class="mb-2"><strong id="emailGreeting">Hola Juan Pérez,</strong></p>
+                                <p class="mb-3" id="emailIntro">Adjuntamos tu boleta digital correspondiente a la compra realizada.</p>
+                                
+                                <div class="mb-3">
+                                    <h6>Detalles de la <span id="emailDetailsType">boleta</span>:</h6>
+                                    <ul class="list-unstyled" id="emailDetails">
+                                        <!-- Detalles dinámicos -->
+                                    </ul>
                                 </div>
+                                
+                                <div class="pdf-preview">
+                                    <i class="fas fa-file-pdf fa-2x text-danger mb-2" id="emailDocIcon"></i>
+                                    <h6 id="emailFileName">Boleta_Chocomania_B001-123456.pdf</h6>
+                                    <small class="text-muted">(Documento tributario electrónico)</small>
+                                </div>
+                                
+                                <p class="mt-3 mb-2"><em>Este documento es válido para todos los efectos tributarios.</em></p>
+                                <p class="mb-0"><strong id="emailThanks">¡Gracias por tu compra!</strong></p>
+                                <p class="mb-0"><em>Equipo Chocomanía</em></p>
                             </div>
 
                             <!-- Botones de Acción -->
                             <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
                                 <button class="btn btn-choco" onclick="downloadReceipt()">
-                                    <i class="fas fa-download me-2"></i>Descargar Boleta PDF
+                                    <i class="fas fa-download me-2"></i><span id="downloadButtonText">Descargar Boleta PDF</span>
                                 </button>
                                 <button class="btn btn-outline-choco" onclick="continueShopping()">
                                     <i class="fas fa-store me-2"></i>Seguir Comprando
@@ -214,7 +250,7 @@
             </div>
         </div>
 
-        <!-- Escenario de Error (oculto inicialmente) -->
+        <!-- Escenario de Error -->
         <div id="errorScenario" style="display: none;">
             <h1 class="section-title">SISTEMA CHOCONANÍA</h1>
             
@@ -222,16 +258,16 @@
                 <div class="col-12 col-lg-8">
                     <div class="receipt-card">
                         <div class="receipt-header text-center">
-                            <h3><i class="fas fa-exclamation-triangle me-2"></i>Error en Envío de Boleta</h3>
+                            <h3><i class="fas fa-exclamation-triangle me-2"></i>A. Error en Envío de <span id="errorDocumentType">Boleta</span></h3>
                             <p class="mb-0">Sistema de notificaciones</p>
                         </div>
                         
                         <div class="receipt-body">
-                            <div class="error-box">
+                            <div class="system-alert">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <p><strong>Pedido:</strong> #CJ202400001</p>
-                                        <p><strong>Boleta:</strong> B001-123456</p>
+                                        <p><strong><span id="errorDocName">Boleta</span>:</strong> <span id="errorDocNumber">B001-123456</span></p>
                                         <p><strong>Error:</strong> Servidor de correo no disponible</p>
                                     </div>
                                     <div class="col-md-6 text-md-end">
@@ -239,15 +275,15 @@
                                         <p><strong>Estado:</strong> <span class="status-badge status-error">FALLIDO</span></p>
                                     </div>
                                 </div>
-                                
-                                <div class="retry-indicator mt-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-sync-alt fa-spin text-warning me-3"></i>
-                                        <div>
-                                            <strong>Reintentando envío automáticamente...</strong>
-                                            <div class="mt-1">
-                                                <small class="text-muted">El sistema realizará 3 intentos antes de generar alerta</small>
-                                            </div>
+                            </div>
+
+                            <div class="retry-indicator mt-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-sync-alt fa-spin text-warning me-3"></i>
+                                    <div>
+                                        <strong>Reintentando envío automáticamente...</strong>
+                                        <div class="mt-1">
+                                            <small class="text-muted">El sistema realizará 3 intentos antes de generar alerta</small>
                                         </div>
                                     </div>
                                 </div>
@@ -261,9 +297,9 @@
                             <!-- Información de contacto -->
                             <div class="alert alert-info mt-4">
                                 <h6><i class="fas fa-info-circle me-2"></i>Información importante</h6>
-                                <p class="mb-2">Si no recibes la boleta después de los reintentos automáticos:</p>
+                                <p class="mb-2">Si no recibes la <span id="contactDocType">boleta</span> después de los reintentos automáticos:</p>
                                 <ul class="mb-0">
-                                    <li>La boleta estará disponible para descarga en "Mis Pedidos"</li>
+                                    <li>La <span id="contactDocType2">boleta</span> estará disponible para descarga en "Mis Pedidos"</li>
                                     <li>Puedes contactarnos a soporte@chocomania.cl</li>
                                     <li>Tu compra ha sido registrada exitosamente</li>
                                 </ul>
@@ -272,7 +308,7 @@
                             <!-- Botones de Acción -->
                             <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
                                 <button class="btn btn-choco" onclick="downloadReceipt()">
-                                    <i class="fas fa-download me-2"></i>Descargar Boleta PDF
+                                    <i class="fas fa-download me-2"></i>Descargar <span id="errorDownloadDocType">Boleta</span> PDF
                                 </button>
                                 <button class="btn btn-outline-choco" onclick="forceRetry()">
                                     <i class="fas fa-redo me-2"></i>Reintentar Envío
@@ -295,22 +331,133 @@
     </div>
 
     <script>
-        // Función para descargar boleta
+        let documentType = 'receipt';
+        let documentData = null;
+
+        // Cargar datos del documento al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener el tipo de documento seleccionado
+            const savedDocumentType = localStorage.getItem('chocomania_document_type');
+            console.log("Datos recuperados de localStorage:", savedDocumentType);
+            
+            if (savedDocumentType) {
+                documentData = JSON.parse(savedDocumentType);
+                documentType = documentData.type;
+                console.log("Tipo de documento detectado:", documentType);
+                console.log("Datos completos:", documentData);
+            } else {
+                console.log("No se encontraron datos en localStorage, usando boleta por defecto");
+            }
+            
+            updateDocumentDisplay();
+            
+            // Simular escenario aleatorio (80% éxito, 20% error)
+            const isSuccess = Math.random() > 0.2;
+            
+            if (isSuccess) {
+                showSuccessScenario();
+            } else {
+                showErrorScenario();
+            }
+        });
+
+        // Función para actualizar la visualización según el tipo de documento
+        function updateDocumentDisplay() {
+            console.log("Actualizando visualización para:", documentType);
+            
+            if (documentType === 'invoice') {
+                console.log("Configurando para FACTURA");
+                
+                // Configurar para FACTURA
+                document.getElementById('successTitle').textContent = 'FACTURA GENERADA';
+                document.getElementById('documentTypeText').textContent = 'Factura Digital Generada';
+                document.getElementById('documentTitle').textContent = 'Factura Digital';
+                document.getElementById('documentDescription').textContent = 'Se ha generado su factura digital y será enviada a su correo electrónico.';
+                document.getElementById('downloadButtonText').textContent = 'Descargar Factura PDF';
+                document.getElementById('documentFileName').textContent = 'Factura_Chocomania_F001-789012.pdf';
+                document.getElementById('documentTypeDescription').textContent = 'Documento tributario electrónico con desglose de IVA';
+                
+                // Email configuration for FACTURA
+                document.getElementById('emailDocType').textContent = 'Factura';
+                document.getElementById('emailIntro').textContent = 'Adjuntamos su factura digital correspondiente a la compra realizada.';
+                document.getElementById('emailDetailsType').textContent = 'factura';
+                document.getElementById('emailFileName').textContent = 'Factura_Chocomania_F001-789012.pdf';
+                document.getElementById('emailThanks').textContent = '¡Gracias por su compra!';
+                document.getElementById('emailDocIcon').className = 'fas fa-file-invoice-dollar fa-2x text-primary mb-2';
+                
+                // Actualizar detalles del documento
+                const documentDetails = document.getElementById('documentDetails');
+                const emailDetails = document.getElementById('emailDetails');
+                if (documentData) {
+                    document.getElementById('emailGreeting').textContent = `Estimada ${documentData.businessName},`;
+                    
+                    documentDetails.innerHTML = `
+                        <p><strong>Nº Factura:</strong> F001-789012</p>
+                        <p><strong>RUT Empresa:</strong> ${documentData.companyRUT}</p>
+                        <p><strong>Razón Social:</strong> ${documentData.businessName}</p>
+                        <p><strong>Correo:</strong> ${documentData.companyEmail}</p>
+                        ${documentData.companyAddress ? `<p><strong>Dirección:</strong> ${documentData.companyAddress}</p>` : ''}
+                        <p><strong>Fecha:</strong> 15/09/2024 14:30</p>
+                        <p><strong>Total:</strong> $560.609</p>
+                    `;
+                    
+                    emailDetails.innerHTML = `
+                        <li><strong>Nº Factura:</strong> F001-789012</li>
+                        <li><strong>RUT:</strong> ${documentData.companyRUT}</li>
+                        <li><strong>Razón Social:</strong> ${documentData.businessName}</li>
+                        ${documentData.companyAddress ? `<li><strong>Dirección:</strong> ${documentData.companyAddress}</li>` : ''}
+                        <li><strong>Fecha:</strong> 15/02/2024 14:30</li>
+                        <li><strong>Neto:</strong> $471.100</li>
+                        <li><strong>IVA (19%):</strong> $89.509</li>
+                        <li><strong>Total:</strong> $560.609</li>
+                    `;
+                }
+                
+                // Mostrar detalles de IVA
+                document.getElementById('invoiceDetails').style.display = 'block';
+                
+                // Configurar icono para factura
+                document.getElementById('documentIcon').className = 'fas fa-file-invoice-dollar fa-3x text-primary mb-3';
+                
+            } else {
+                console.log("Configurando para BOLETA");
+                
+                // Configurar para BOLETA
+                document.getElementById('emailGreeting').textContent = 'Hola Juan Pérez,';
+                
+                document.getElementById('documentDetails').innerHTML = `
+                    <p><strong>Nº Boleta:</strong> B001-123456</p>
+                    <p><strong>Correo:</strong> cliente@ejemplo.com</p>
+                    <p><strong>Fecha:</strong> 15/09/2024 14:30</p>
+                    <p><strong>RUT:</strong> 12.345.678-9</p>
+                    <p><strong>Monto Total:</strong> $324.970</p>
+                `;
+                
+                // Email configuration for BOLETA
+                document.getElementById('emailDetails').innerHTML = `
+                    <li><strong>Nº Boleta:</strong> B001-123456</li>
+                    <li><strong>Fecha:</strong> 15/02/2024 14:30</li>
+                    <li><strong>RUT:</strong> 12.345.678-9</li>
+                    <li><strong>Monto:</strong> $524.970</li>
+                `;
+            }
+        }
+
+        // Función para descargar boleta/factura
         function downloadReceipt() {
-            alert('Descargando boleta B001-123456...');
-            // En una implementación real, aquí se generaría el PDF
+            const docType = documentType === 'invoice' ? 'Factura' : 'Boleta';
+            const docNumber = documentType === 'invoice' ? 'F001-789012' : 'B001-123456';
+            alert(`Descargando ${docType} ${docNumber}...`);
         }
 
         // Función para continuar comprando
         function continueShopping() {
-            alert('Redirigiendo a la tienda...');
-            // window.location.href = 'https://www.Chocomania.cl';
+            window.location.href = 'Catalogo.html';
         }
 
         // Función para forzar reintento
         function forceRetry() {
-            alert('Reintentando envío de boleta...');
-            // Simular reintento
+            alert('Reintentando envío de documento...');
             setTimeout(() => {
                 showSuccessScenario();
             }, 2000);
@@ -324,6 +471,23 @@
 
         // Función para mostrar escenario de error
         function showErrorScenario() {
+            // Actualizar textos para el escenario de error según el tipo de documento
+            if (documentType === 'invoice') {
+                document.getElementById('errorDocumentType').textContent = 'Factura';
+                document.getElementById('errorDocName').textContent = 'Factura';
+                document.getElementById('errorDocNumber').textContent = 'F001-789012';
+                document.getElementById('contactDocType').textContent = 'factura';
+                document.getElementById('contactDocType2').textContent = 'factura';
+                document.getElementById('errorDownloadDocType').textContent = 'Factura';
+            } else {
+                document.getElementById('errorDocumentType').textContent = 'Boleta';
+                document.getElementById('errorDocName').textContent = 'Boleta';
+                document.getElementById('errorDocNumber').textContent = 'B001-123456';
+                document.getElementById('contactDocType').textContent = 'boleta';
+                document.getElementById('contactDocType2').textContent = 'boleta';
+                document.getElementById('errorDownloadDocType').textContent = 'Boleta';
+            }
+            
             document.getElementById('successScenario').style.display = 'none';
             document.getElementById('errorScenario').style.display = 'block';
             startCountdown();
@@ -331,7 +495,7 @@
 
         // Simular countdown para reintento
         function startCountdown() {
-            let timeLeft = 120; // 2 minutos en segundos
+            let timeLeft = 120;
             const countdownElement = document.getElementById('countdown');
             
             const countdown = setInterval(() => {
@@ -344,21 +508,9 @@
                 if (timeLeft < 0) {
                     clearInterval(countdown);
                     countdownElement.textContent = '00:00';
-                    // Aquí se simularía el reintento automático
                 }
             }, 1000);
         }
-
-        // Simular escenario aleatorio (80% éxito, 20% error)
-        document.addEventListener('DOMContentLoaded', function() {
-            const isSuccess = Math.random() > 0.2; // 80% probabilidad de éxito
-            
-            if (isSuccess) {
-                showSuccessScenario();
-            } else {
-                showErrorScenario();
-            }
-        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

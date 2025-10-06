@@ -183,9 +183,33 @@
             border-radius: 50%;
             margin: 0 5px;
         }
+
+        .cart-notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--choco-primary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .cart-notification.show {
+            transform: translateX(0);
+        }
     </style>
 </head>
 <body>
+    <!-- Notificación de carrito -->
+    <div class="cart-notification" id="cartNotification">
+        <i class="fas fa-check-circle me-2"></i>
+        <span id="notificationMessage">Producto añadido al carrito</span>
+    </div>
+
     <!-- Top Bar -->
     <div class="top-bar">
         <div class="container text-center">
@@ -225,6 +249,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="ArmadoPedido.html">
                             <i class="fas fa-shopping-cart"></i>
+                            <span class="badge bg-danger" id="cartCount">0</span>
                         </a>
                     </li>
                 </ul>
@@ -321,7 +346,9 @@
                             <p>Delicioso chocolate de leche con 35% de cacao.</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="product-price">$8.990</span>
-                                <button class="btn btn-choco btn-sm">Añadir al carrito</button>
+                                <button class="btn btn-choco btn-sm" onclick="addToCart('Chocolate de Leche Premium', 8990, 'ChocolateLeche.png')">
+                                    Añadir al carrito
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -334,7 +361,9 @@
                             <p>Selección de 12 bombones con rellenos exclusivos.</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="product-price">$12.500</span>
-                                <button class="btn btn-choco btn-sm">Añadir al carrito</button>
+                                <button class="btn btn-choco btn-sm" onclick="addToCart('Caja de Bombones Variados', 12500, 'Bombones.png')">
+                                    Añadir al carrito
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -347,7 +376,9 @@
                             <p>Pack de 6 alfajores rellenos de manjar.</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="product-price">$7.800</span>
-                                <button class="btn btn-choco btn-sm">Añadir al carrito</button>
+                                <button class="btn btn-choco btn-sm" onclick="addToCart('Alfajores Tradicionales', 7800, 'Alfajores.png')">
+                                    Añadir al carrito
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -394,5 +425,79 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Función para inicializar el carrito
+        function initializeCart() {
+            if (!localStorage.getItem('chocomaniaCart')) {
+                localStorage.setItem('chocomaniaCart', JSON.stringify([]));
+            }
+            updateCartCount();
+        }
+
+        // Función para añadir producto al carrito
+        function addToCart(productName, price, image) {
+            const cart = JSON.parse(localStorage.getItem('chocomaniaCart')) || [];
+            
+            // Verificar si el producto ya está en el carrito
+            const existingProduct = cart.find(item => item.name === productName);
+            
+            if (existingProduct) {
+                existingProduct.quantity += 1;
+            } else {
+                cart.push({
+                    id: Date.now().toString(),
+                    name: productName,
+                    price: price,
+                    image: image,
+                    quantity: 1
+                });
+            }
+            
+            localStorage.setItem('chocomaniaCart', JSON.stringify(cart));
+            updateCartCount();
+            showNotification(`${productName} añadido al carrito`);
+        }
+
+        // Función para actualizar el contador del carrito
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('chocomaniaCart')) || [];
+            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cartCount').textContent = totalItems;
+        }
+
+        // Función para mostrar notificación
+        function showNotification(message) {
+            const notification = document.getElementById('cartNotification');
+            const messageElement = document.getElementById('notificationMessage');
+            
+            messageElement.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Inicializar el carrito cuando la página carga
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCart();
+            
+            // Agregar event listeners a todos los botones de añadir al carrito
+            const addToCartButtons = document.querySelectorAll('.btn-choco');
+            addToCartButtons.forEach(button => {
+                if (button.textContent.includes('Añadir al carrito')) {
+                    button.addEventListener('click', function() {
+                        const productCard = this.closest('.product-card');
+                        const productName = productCard.querySelector('h4').textContent;
+                        const productPrice = parseInt(productCard.querySelector('.product-price').textContent.replace('$', '').replace('.', ''));
+                        const productImage = productCard.querySelector('img').src.split('/').pop();
+                        
+                        addToCart(productName, productPrice, productImage);
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

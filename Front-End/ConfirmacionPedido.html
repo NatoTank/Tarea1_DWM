@@ -292,7 +292,7 @@
                 orderItems.appendChild(row);
             });
             
-            // Actualizar total
+            // Actualizar total - USANDO EL TOTAL REAL DEL PEDIDO
             orderTotal.textContent = orderData.total.toLocaleString('es-CL');
         }
 
@@ -333,7 +333,7 @@
                         date: new Date().toLocaleDateString('es-CL')
                     };
                     
-                    // Guardar pedido confirmado
+                    // Guardar pedido confirmado - CON EL TOTAL CORRECTO
                     const existingOrders = JSON.parse(localStorage.getItem('chocomania_orders')) || [];
                     existingOrders.unshift(confirmedOrder); // Agregar al inicio
                     localStorage.setItem('chocomania_orders', JSON.stringify(existingOrders));
