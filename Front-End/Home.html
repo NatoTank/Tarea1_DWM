@@ -201,6 +201,37 @@
         .cart-notification.show {
             transform: translateX(0);
         }
+
+        /* Botón de acceso para repartidores */
+        .driver-access-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--choco-primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .driver-access-btn:hover {
+            background: var(--choco-secondary);
+            transform: scale(1.1);
+        }
+
+        .password-modal .modal-header {
+            background: var(--choco-primary);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -209,6 +240,11 @@
         <i class="fas fa-check-circle me-2"></i>
         <span id="notificationMessage">Producto añadido al carrito</span>
     </div>
+
+    <!-- Botón de acceso para repartidores -->
+    <button class="driver-access-btn" id="driverAccessBtn" title="Acceso Repartidores">
+        <i class="fas fa-motorcycle"></i>
+    </button>
 
     <!-- Top Bar -->
     <div class="top-bar">
@@ -424,6 +460,34 @@
         </div>
     </footer>
 
+    <!-- Modal para contraseña de repartidor -->
+    <div class="modal fade password-modal" id="driverPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-motorcycle me-2"></i>
+                        Acceso Repartidores
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="driverPassword" class="form-label">Contraseña de acceso:</label>
+                        <input type="password" class="form-control" id="driverPassword" placeholder="Ingresa la contraseña">
+                    </div>
+                    <div class="alert alert-info">
+                        <small><i class="fas fa-info-circle me-2"></i>Solo para personal autorizado</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-choco" id="confirmDriverAccess">Acceder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
@@ -479,9 +543,30 @@
             }, 3000);
         }
 
-        // Inicializar el carrito cuando la página carga
+        // Inicializar cuando la página carga
         document.addEventListener('DOMContentLoaded', function() {
             initializeCart();
+            
+            // Configurar modal de contraseña
+            const driverPasswordModal = new bootstrap.Modal(document.getElementById('driverPasswordModal'));
+            
+            // Botón de acceso para repartidores
+            document.getElementById('driverAccessBtn').addEventListener('click', function() {
+                driverPasswordModal.show();
+            });
+            
+            // Confirmar acceso
+            document.getElementById('confirmDriverAccess').addEventListener('click', function() {
+                const password = document.getElementById('driverPassword').value;
+                
+                if (password === '1234') {
+                    // Redirigir directamente a SeguimientoDespacho.html
+                    window.location.href = 'SeguimientoDespacho.html';
+                } else {
+                    alert('Contraseña incorrecta. Intenta con 1234');
+                    document.getElementById('driverPassword').value = '';
+                }
+            });
             
             // Agregar event listeners a todos los botones de añadir al carrito
             const addToCartButtons = document.querySelectorAll('.btn-choco');
