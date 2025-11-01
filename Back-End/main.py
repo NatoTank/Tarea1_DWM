@@ -466,7 +466,7 @@ def confirmar_pago_simulado(token: int, simul_status: str):
         return {"mensaje": "Transacción no autorizada"}
 
 
-# --- ENDPOINTS DE REPORTES ---
+# --- ENDPOINTS DE REPORTES (CORREGIDO) ---
 
 @app.get("/reportes/ventas")
 def generar_reporte_ventas(
@@ -476,11 +476,21 @@ def generar_reporte_ventas(
     admin_user: Usuario = Depends(get_current_admin_user)
 ):
     
+    # --- INICIO DE LA CORRECCIÓN ---
+    # Definimos todos los estados que cuentan como una venta
+    estados_de_venta = [
+        EstadoPedido.pagado, 
+        EstadoPedido.en_preparacion, 
+        EstadoPedido.despachado, 
+        EstadoPedido.entregado
+    ]
+
     pedidos_pagados = [
         p for p in db_pedidos 
-        if p.estado == EstadoPedido.pagado and
+        if p.estado in estados_de_venta and  # <-- ¡AQUÍ ESTÁ EL CAMBIO!
            fecha_inicio <= p.fecha_creacion.date() <= fecha_fin
     ]
+    # --- FIN DE LA CORRECIÓN ---
 
     if not pedidos_pagados:
         return {"mensaje": "Sin datos disponibles para este período"}
