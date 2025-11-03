@@ -353,6 +353,37 @@ def asignar_rol(
             
     raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
+# --- Pega esto después de la función asignar_rol ---
+
+@app.put("/usuarios/me/datos", response_model=Usuario)
+def actualizar_datos_personales(
+    datos: DatosPersonalesUpdate,
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Implementa la historia UX-B-02: Guardar Datos Personales.
+    Permite al usuario logueado actualizar su propio nombre, dirección, etc.
+    """
+    
+    # Buscamos al usuario en la BBDD (aunque current_user ya lo es, 
+    # necesitamos el índice para actualizar la lista)
+    for idx, usuario in enumerate(db_usuarios):
+        if usuario.id == current_user.id:
+            
+            # Actualiza el objeto 'usuario' con los datos del DTO 'datos'
+            usuario.nombre = datos.nombre
+            usuario.direccion = datos.direccion
+            usuario.comuna = datos.comuna
+            usuario.telefono = datos.telefono
+            
+            db_usuarios[idx] = usuario # Guarda el usuario actualizado en la "BBDD"
+            return usuario
+    
+    # Esto no debería pasar si el token es válido, pero por si acaso
+    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+# --- FIN DE LOS ENDPOINTS DE USUARIO ---
+
 
 # --- ENDPOINTS DE CATÁLOGO (Productos) ---
 
