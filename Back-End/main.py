@@ -6,7 +6,7 @@ from typing import Optional, List
 from datetime import datetime, timedelta, timezone, date, time
 from enum import Enum
 import io 
-import random # Para simular ubicación
+import random
 
 # --- LIBRERÍAS DE SEGURIDAD ---
 from passlib.context import CryptContext
@@ -108,6 +108,7 @@ class Pedido(BaseModel):
     estado: EstadoPedido = EstadoPedido.pendiente_de_pago
     fecha_creacion: datetime
     seguimiento_id: Optional[str] = None
+    documento_id: Optional[int] = None # Para Boleta/Factura
 
 # (Notificaciones)
 class TipoNotificacion(str, Enum):
@@ -160,6 +161,41 @@ class Seguimiento(BaseModel):
     ubicacion_actual: Optional[Ubicacion] = None
     historial_ubicaciones: List[Ubicacion] = []
 
+# (Documentos B-13/14)
+class TipoDocumento(str, Enum):
+    boleta = "boleta"
+    factura = "factura"
+
+class Documento(BaseModel):
+    id: int
+    pedido_id: int
+    fecha: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    tipo: TipoDocumento
+    total: float
+    rut: Optional[str] = None
+    razon_social: Optional[str] = None
+    
+class FacturaInput(BaseModel):
+    rut: str
+    razon_social: str
+
+# (Dashboard B-22)
+class VentasPorHora(BaseModel):
+    hora: int
+    total: float
+
+class DashboardVentas(BaseModel):
+    total_acumulado: float
+    ticket_promedio: float
+    top_productos: List[str]
+    ventas_por_hora: List[VentasPorHora]
+
+class DashboardPedidoActivo(BaseModel):
+    id: str # P-1001
+    cliente: str
+    estado: str
+    tiempo_estimado: str
+    encargado: str
 
 # --- 2. CONFIGURACIÓN DE SEGURIDAD ---
 SECRET_KEY = "tu-clave-secreta-super-dificil-de-adivinar"
@@ -193,10 +229,12 @@ db_productos: List[Producto] = []
 db_pedidos: List[Pedido] = []
 db_notificaciones: List[Notificacion] = []
 db_seguimientos: List[Seguimiento] = []
+db_documentos: List[Documento] = [] # <--- ¡NUEVO!
 usuario_id_counter = 0
 producto_id_counter = 0
 pedido_id_counter = 0
 notificacion_id_counter = 0
+documento_id_counter = 0
 
 
 # --- 5. FUNCIONES DE AUTENTICACIÓN Y BBDD ---
@@ -275,7 +313,6 @@ def leer_root(): return {"mensaje": "¡Bienvenido a la API de Chocomanía!"}
 @app.post("/usuarios/registrar", response_model=Usuario, status_code=201)
 def registrar_usuario(usuario_input: UsuarioCreate):
     global usuario_id_counter
-    
     if get_usuario_by_email(usuario_input.email):
         raise HTTPException(status_code=400, detail="El Email esta en uso")
 
@@ -293,7 +330,6 @@ def registrar_usuario(usuario_input: UsuarioCreate):
         hashed_password=hashed_password,
         rol=rol_asignado
     )
-    
     db_usuarios.append(nuevo_usuario)
     return nuevo_usuario
 
@@ -301,11 +337,7 @@ def registrar_usuario(usuario_input: UsuarioCreate):
 def login_para_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     usuario = autenticar_usuario(form_data.username, form_data.password)
     if not usuario:
-        raise HTTPException(
-            status_code=401,
-            detail="Email o contraseña incorrecta",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=401, detail="Email o contraseña incorrecta")
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = crear_access_token(
@@ -332,7 +364,6 @@ def cambiar_contraseña(
             user.hashed_password = nuevo_hashed_password
             db_usuarios[idx] = user
             break
-            
     return {"mensaje": "Contraseña actualizada exitosamente"}
 
 @app.put("/admin/usuarios/{usuario_id}/rol", response_model=Usuario)
@@ -344,45 +375,41 @@ def asignar_rol(
     usuario = get_usuario_by_id(usuario_id)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        
     for idx, user in enumerate(db_usuarios):
         if user.id == usuario.id:
             user.rol = rol_input.nuevo_rol
             db_usuarios[idx] = user
             return user
-            
     raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-# --- Pega esto después de la función asignar_rol ---
-
+# (UX-B-02) Endpoint de Datos Personales
 @app.put("/usuarios/me/datos", response_model=Usuario)
 def actualizar_datos_personales(
     datos: DatosPersonalesUpdate,
     current_user: Usuario = Depends(get_current_user)
 ):
-    """
-    Implementa la historia UX-B-02: Guardar Datos Personales.
-    Permite al usuario logueado actualizar su propio nombre, dirección, etc.
-    """
-    
-    # Buscamos al usuario en la BBDD (aunque current_user ya lo es, 
-    # necesitamos el índice para actualizar la lista)
     for idx, usuario in enumerate(db_usuarios):
         if usuario.id == current_user.id:
-            
-            # Actualiza el objeto 'usuario' con los datos del DTO 'datos'
             usuario.nombre = datos.nombre
             usuario.direccion = datos.direccion
             usuario.comuna = datos.comuna
             usuario.telefono = datos.telefono
-            
-            db_usuarios[idx] = usuario # Guarda el usuario actualizado en la "BBDD"
+            db_usuarios[idx] = usuario
             return usuario
-    
-    # Esto no debería pasar si el token es válido, pero por si acaso
     raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-# --- FIN DE LOS ENDPOINTS DE USUARIO ---
+# (UX-B-07) Endpoint de Suscripción
+@app.put("/usuarios/me/suscripcion", response_model=Usuario)
+def gestionar_suscripcion(
+    suscripcion: SuscripcionInput,
+    current_user: Usuario = Depends(get_current_user)
+):
+    for idx, usuario in enumerate(db_usuarios):
+        if usuario.id == current_user.id:
+            usuario.recibirPromos = suscripcion.recibirPromos
+            db_usuarios[idx] = usuario
+            return usuario
+    raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
 
 # --- ENDPOINTS DE CATÁLOGO (Productos) ---
@@ -394,19 +421,21 @@ def crear_producto(
 ):
     global producto_id_counter
     producto_id_counter += 1
-    
-    nuevo_producto = Producto(
-        id=producto_id_counter,
-        activo=True,
-        **producto_input.model_dump()
-    )
-    
+    nuevo_producto = Producto(id=producto_id_counter, activo=True, **producto_input.model_dump())
     db_productos.append(nuevo_producto)
     return nuevo_producto
 
+# (UX-B-04) Filtros añadidos
 @app.get("/productos/", response_model=List[Producto])
-def leer_productos():
+def leer_productos(tipo: Optional[str] = None):
+    # Filtro B-09 (Solo activos)
     productos_activos = [p for p in db_productos if p.activo]
+    
+    # Filtro B-04 (Por tipo)
+    if tipo:
+        productos_filtrados = [p for p in productos_activos if p.tipo.lower() == tipo.lower()]
+        return productos_filtrados
+        
     return productos_activos
 
 @app.put("/productos/{producto_id}", response_model=Producto)
@@ -422,11 +451,39 @@ def actualizar_producto(
                 setattr(producto, key, value)
             db_productos[idx] = producto
             return producto
-
     raise HTTPException(status_code=404, detail="Producto no encontrado")
 
 
 # --- ENDPOINTS DE PAGO Y PEDIDOS ---
+
+# (B-13/14) Función helper para crear boleta/factura
+def crear_documento_fiscal(pedido: Pedido, factura_input: Optional[FacturaInput] = None):
+    global documento_id_counter
+    documento_id_counter += 1
+    
+    tipo_doc = TipoDocumento.boleta
+    rut = None
+    razon_social = None
+    
+    # Si el usuario mandó datos de factura, la creamos
+    if factura_input:
+        tipo_doc = TipoDocumento.factura
+        rut = factura_input.rut
+        razon_social = factura_input.razon_social
+
+    nuevo_documento = Documento(
+        id=documento_id_counter,
+        pedido_id=pedido.id,
+        tipo=tipo_doc,
+        total=pedido.total,
+        rut=rut,
+        razon_social=razon_social
+    )
+    db_documentos.append(nuevo_documento)
+    pedido.documento_id = nuevo_documento.id
+    print(f"DOCUMENTO CREADO: {tipo_doc.value} #{nuevo_documento.id} para Pedido {pedido.id}")
+    # (Aquí se enviaría el email con el PDF adjunto)
+    return nuevo_documento
 
 @app.post("/pedidos/crear-pago", response_model=dict)
 def crear_pedido_y_pago(
@@ -439,16 +496,10 @@ def crear_pedido_y_pago(
 
     for item in pedido_input.items:
         producto = get_producto_by_id(item.producto_id)
-        
         if not producto or not producto.activo or producto.stock < item.cantidad:
              raise HTTPException(status_code=400, detail=f"Problema con producto ID {item.producto_id}")
-        
         precio_item = producto.precio
-        items_del_pedido.append(PedidoItem(
-            producto_id=item.producto_id, 
-            cantidad=item.cantidad, 
-            precio_en_el_momento=precio_item
-        ))
+        items_del_pedido.append(PedidoItem(producto_id=item.producto_id, cantidad=item.cantidad, precio_en_el_momento=precio_item))
         total_calculado += precio_item * item.cantidad
 
     pedido_id_counter += 1
@@ -462,8 +513,29 @@ def crear_pedido_y_pago(
         seguimiento_id=str(pedido_id_counter)
     )
     db_pedidos.append(nuevo_pedido)
-    
     return {"redirect_url": f"https://simulador-webpay.cl/pay?token={nuevo_pedido.id}"}
+
+# (B-14) Endpoint para solicitar factura DESPUÉS de crear el pedido
+# (B-14) Endpoint para solicitar factura DESPUÉS de crear el pedido
+@app.post("/pedidos/{pedido_id}/solicitar-factura", response_model=dict)
+def solicitar_factura(
+    pedido_id: int,
+    factura_input: FacturaInput,
+    current_user: Usuario = Depends(get_current_user)
+):
+    pedido = get_pedido_by_id(pedido_id)
+    if not pedido or pedido.usuario_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+    
+    if pedido.estado != EstadoPedido.pendiente_de_pago:
+        raise HTTPException(status_code=400, detail="Solo se puede solicitar factura antes del pago")
+
+    # (Simulación) Guardamos los datos de facturación para usarlos DESPUÉS del pago
+    # En un caso real, esto se guardaría en el pedido.
+    # Aquí, lo crearemos directamente para simularlo.
+    print(f"Pedido {pedido_id} marcado para Factura con RUT {factura_input.rut}")
+    # (En este simulador, llamaremos a crear_documento_fiscal en la confirmación)
+    return {"mensaje": "Datos de facturación recibidos. Se generará al aprobar el pago."}
 
 
 @app.get("/pagos/confirmacion", response_model=dict)
@@ -474,11 +546,17 @@ def confirmar_pago_simulado(token: int, simul_status: str):
 
     if simul_status == "aprobado":
         pedido.estado = EstadoPedido.pagado
-        print(f"Pedido {pedido.id} Pagado. Estado actual: {pedido.estado}")
+        print(f"Pedido {pedido.id} Pagado.")
         
         pedido.estado = EstadoPedido.en_preparacion 
         print(f"Pedido {pedido.id} ahora en preparación.")
         
+        # (B-13/14) Trigger de Documento
+        # (Simulamos que si se pidió factura, la creamos, si no, creamos boleta)
+        # (En un caso real, aquí buscaríamos los datos guardados en "solicitar_factura")
+        crear_documento_fiscal(pedido) # Simula creación de boleta por defecto
+        
+        # (B-16) Trigger de Seguimiento
         nuevo_seguimiento = Seguimiento(
             pedido_id=pedido.id,
             estado=EstadoSeguimiento.en_camino,
@@ -487,6 +565,7 @@ def confirmar_pago_simulado(token: int, simul_status: str):
         db_seguimientos.append(nuevo_seguimiento)
         print(f"Seguimiento creado para Pedido {pedido.id}.")
 
+        # (B-15) Trigger de Notificación
         enviar_notificacion_interna(
              EnviarNotificacionInput(pedido_id=pedido.id, tipo=TipoNotificacion.pedido_despachado)
         )
@@ -495,6 +574,28 @@ def confirmar_pago_simulado(token: int, simul_status: str):
     else:
         pedido.estado = EstadoPedido.rechazado
         return {"mensaje": "Transacción no autorizada"}
+
+# (UX-B-10) Endpoint para Cancelar Pedido
+@app.put("/pedidos/{pedido_id}/cancelar", response_model=Pedido)
+def cancelar_pedido(
+    pedido_id: int,
+    current_user: Usuario = Depends(get_current_user)
+):
+    pedido = get_pedido_by_id(pedido_id)
+    
+    if not pedido or pedido.usuario_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+        
+    # Gherkin: "no ha sido despachado"
+    if pedido.estado in [EstadoPedido.despachado, EstadoPedido.entregado]:
+        raise HTTPException(status_code=400, detail="No se puede cancelar, el pedido ya fue despachado")
+        
+    pedido.estado = EstadoPedido.cancelado
+    print(f"Pedido {pedido.id} marcado como CANCELADO.")
+    
+    # (Aquí debería ir la lógica para devolver el stock a db_productos)
+    
+    return pedido
 
 
 # --- ENDPOINTS DE REPORTES (CORREGIDO) ---
@@ -506,22 +607,17 @@ def generar_reporte_ventas(
     formato: str = "json",
     admin_user: Usuario = Depends(get_current_admin_user)
 ):
-    
-    # --- INICIO DE LA CORRECCIÓN ---
-    # Definimos todos los estados que cuentan como una venta
     estados_de_venta = [
         EstadoPedido.pagado, 
         EstadoPedido.en_preparacion, 
         EstadoPedido.despachado, 
         EstadoPedido.entregado
     ]
-
     pedidos_pagados = [
         p for p in db_pedidos 
-        if p.estado in estados_de_venta and  # <-- ¡AQUÍ ESTÁ EL CAMBIO!
+        if p.estado in estados_de_venta and
            fecha_inicio <= p.fecha_creacion.date() <= fecha_fin
     ]
-    # --- FIN DE LA CORRECIÓN ---
 
     if not pedidos_pagados:
         return {"mensaje": "Sin datos disponibles para este período"}
@@ -531,7 +627,6 @@ def generar_reporte_ventas(
         {"id": p.id, "fecha": p.fecha_creacion.isoformat(), "total": p.total} 
         for p in pedidos_pagados
     ]
-    
     reporte_data = {
         "periodo": f"{fecha_inicio.isoformat()} al {fecha_fin.isoformat()}",
         "total_ventas": total_ventas,
@@ -541,25 +636,77 @@ def generar_reporte_ventas(
 
     if formato == "json":
         return reporte_data
-
     elif formato == "excel" or formato == "pdf":
         output = io.StringIO()
         output.write("id,fecha,total\n")
         for p in detalle_pedidos:
             output.write(f"{p['id']},{p['fecha']},{p['total']}\n")
-        
         file_content = output.getvalue()
         output.close()
-        
         return StreamingResponse(
             io.BytesIO(file_content.encode("utf-8")),
             media_type="text/csv",
-            headers={
-                "Content-Disposition": f"attachment; filename=reporte_{fecha_inicio}_a_{fecha_fin}.csv"
-            }
+            headers={"Content-Disposition": f"attachment; filename=reporte_{fecha_inicio}_a_{fecha_fin}.csv"}
         )
-
     return HTTPException(status_code=400, detail="Formato no soportado")
+
+
+# --- (B-22) ENDPOINTS DE DASHBOARD ---
+
+@app.get("/dashboard/ventas", response_model=DashboardVentas)
+def get_dashboard_ventas(
+    fecha: date,
+    admin_user: Usuario = Depends(get_current_admin_user)
+):
+    estados_de_venta = [EstadoPedido.pagado, EstadoPedido.en_preparacion, EstadoPedido.despachado, EstadoPedido.entregado]
+    pedidos_del_dia = [
+        p for p in db_pedidos 
+        if p.estado in estados_de_venta and p.fecha_creacion.date() == fecha
+    ]
+    
+    if not pedidos_del_dia:
+        raise HTTPException(status_code=404, detail="No hay ventas para la fecha seleccionada")
+
+    total_acumulado = sum(p.total for p in pedidos_del_dia)
+    ticket_promedio = total_acumulado / len(pedidos_del_dia)
+    
+    # Simulación simple de top productos y ventas por hora
+    top_productos_simulado = ["Bombones Finos (Simulado)", "Tableta Amarga (Simulado)"]
+    ventas_por_hora_simulado = [
+        VentasPorHora(hora=h, total=round(random.uniform(5000, 20000), 0)) for h in range(9, 18)
+    ]
+    
+    return DashboardVentas(
+        total_acumulado=total_acumulado,
+        ticket_promedio=ticket_promedio,
+        top_productos=top_productos_simulado,
+        ventas_por_hora=ventas_por_hora_simulado
+    )
+
+@app.get("/dashboard/pedidos-en-curso", response_model=List[DashboardPedidoActivo])
+def get_dashboard_pedidos_activos(
+    fecha: date,
+    admin_user: Usuario = Depends(get_current_admin_user)
+):
+    estados_activos = [EstadoPedido.en_preparacion, EstadoPedido.despachado]
+    pedidos_activos = [
+        p for p in db_pedidos 
+        if p.estado in estados_activos and p.fecha_creacion.date() == fecha
+    ]
+    
+    # Simulación de datos para el dashboard
+    dashboard_list = []
+    for p in pedidos_activos:
+        cliente = get_usuario_by_id(p.usuario_id)
+        dashboard_list.append(DashboardPedidoActivo(
+            id=f"P-{p.id}",
+            cliente=cliente.nombre or "Cliente Anónimo",
+            estado=p.estado.value,
+            tiempo_estimado=f"{random.randint(5, 20)} min",
+            encargado="Laura Pérez (Simulado)"
+        ))
+        
+    return dashboard_list
 
 
 # --- ENDPOINTS DE NOTIFICACIONES ---
@@ -596,7 +743,6 @@ def enviar_notificacion_interna(notificacion_input: EnviarNotificacionInput):
 @app.post("/notificaciones/enviar", response_model=Notificacion, status_code=201)
 def enviar_notificacion_endpoint(
     notificacion_input: EnviarNotificacionInput
-    # admin_user: Usuario = Depends(get_current_admin_user) 
 ):
     notificacion = enviar_notificacion_interna(notificacion_input)
     if not notificacion:
@@ -607,7 +753,6 @@ def enviar_notificacion_endpoint(
 def actualizar_notificacion_endpoint(
     pedido_id: int,
     update_input: ActualizarNotificacionInput
-    # admin_user: Usuario = Depends(get_current_admin_user)
 ):
     notificaciones_pedido = get_notificacion_by_pedido_id(pedido_id)
     if not notificaciones_pedido:
@@ -638,7 +783,7 @@ def obtener_seguimiento_cliente(
     if not pedido or pedido.usuario_id != current_user.id:
         raise HTTPException(status_code=404, detail="Pedido no encontrado o no autorizado")
 
-    seguimiento = get_seguimiento_by_pedido_id(pedido_id)
+    seguimiento = get_seguimiento_by_pedido_id(pedido.id)
     if not seguimiento:
          raise HTTPException(status_code=404, detail="Seguimiento no iniciado para este pedido")
 
