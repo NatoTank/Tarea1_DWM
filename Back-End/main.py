@@ -13,12 +13,13 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 
 # --- ¡NUEVOS IMPORTS PARA LA BASE DE DATOS! ---
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Enum as SAEnum, Table
+# (¡AÑADIMOS 'func'!)
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Enum as SAEnum, Table, func
 from sqlalchemy.orm import sessionmaker, Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 # --- CONFIGURACIÓN DE LA BASE DE DATOS ---
-SQLALCHEMY_DATABASE_URL = "sqlite:///./chocomania.db" # <-- El archivo de BBDD
+SQLALCHEMY_DATABASE_URL = "sqlite:///./chocomania.db" 
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
@@ -26,10 +27,39 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# --- 1. MODELOS DE BASE DE DATOS (SQLAlchemy) ---
-# (Estos definen las TABLAS en la BBDD)
+# --- 1. DEFINICIONES DE ENUMS ---
 
-# Tabla de asociación para Pedido <-> Producto
+class Roles(str, Enum):
+    cliente = "cliente"
+    administrador = "administrador"
+    cocinero = "cocinero"
+    repartidor = "repartidor"
+
+class EstadoPedido(str, Enum):
+    pendiente_de_pago = "pendiente_de_pago"
+    pagado = "pagado"
+    en_preparacion = "en_preparacion"
+    despachado = "despachado"
+    entregado = "entregado" 
+    rechazado = "rechazado"
+    cancelado = "cancelado"
+
+class TipoNotificacion(str, Enum):
+    pedido_recibido = "pedido_recibido"
+    pedido_despachado = "pedido_despachado"
+    retraso_entrega = "retraso_entrega"
+
+class EstadoSeguimiento(str, Enum):
+    en_camino = "En Camino"
+    entregado = "Entregado"
+    problema_reportado = "Problema Reportado"
+
+class TipoDocumento(str, Enum):
+    boleta = "boleta"
+    factura = "factura"
+
+# --- 2. MODELOS DE BASE DE DATOS (SQLAlchemy) ---
+
 pedido_items_tabla = Table('pedido_items', Base.metadata,
     Column('pedido_id', Integer, ForeignKey('pedidos.id'), primary_key=True),
     Column('producto_id', Integer, ForeignKey('productos.id'), primary_key=True),
@@ -42,14 +72,13 @@ class UsuarioDB(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    rol = Column(SAEnum(Roles), default=Roles.cliente) # Usamos el Enum de Pydantic
+    rol = Column(SAEnum(Roles), default=Roles.cliente)
     nombre = Column(String, nullable=True)
     direccion = Column(String, nullable=True)
     comuna = Column(String, nullable=True)
     telefono = Column(String, nullable=True)
     recibirPromos = Column(Boolean, default=True)
     
-    # Relación: Un Usuario tiene muchos Pedidos
     pedidos = relationship("PedidoDB", back_populates="dueño")
 
 class ProductoDB(Base):
@@ -62,7 +91,6 @@ class ProductoDB(Base):
     stock = Column(Integer)
     activo = Column(Boolean, default=True)
     
-    # Relación: Un Producto está en muchos Pedidos
     pedidos = relationship("PedidoDB", secondary=pedido_items_tabla, back_populates="productos")
 
 class PedidoDB(Base):
@@ -72,14 +100,12 @@ class PedidoDB(Base):
     total = Column(Float)
     estado = Column(SAEnum(EstadoPedido), default=EstadoPedido.pendiente_de_pago)
     fecha_creacion = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    documento_id = Column(Integer, ForeignKey('documentos.id'), nullable=True)
 
-    # Relaciones
     dueño = relationship("UsuarioDB", back_populates="pedidos")
     productos = relationship("ProductoDB", secondary=pedido_items_tabla, back_populates="pedidos")
-    seguimiento = relationship("SeguimientoDB", back_populates="pedido", uselist=False) # Uno-a-Uno
+    seguimiento = relationship("SeguimientoDB", back_populates="pedido", uselist=False)
     notificaciones = relationship("NotificacionDB", back_populates="pedido")
-    documento = relationship("DocumentoDB", back_populates="pedido")
+    documento = relationship("DocumentoDB", back_populates="pedido", uselist=False)
 
 class NotificacionDB(Base):
     __tablename__ = "notificaciones"
@@ -87,7 +113,7 @@ class NotificacionDB(Base):
     pedido_id = Column(Integer, ForeignKey('pedidos.id'))
     tipo = Column(SAEnum(TipoNotificacion))
     mensaje = Column(String)
-    hora_estimada = Column(String, nullable=True) # SQLite no maneja bien 'time'
+    hora_estimada = Column(String, nullable=True) 
     fecha_envio = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     pedido = relationship("PedidoDB", back_populates="notificaciones")
@@ -95,7 +121,7 @@ class NotificacionDB(Base):
 class SeguimientoDB(Base):
     __tablename__ = "seguimientos"
     id = Column(Integer, primary_key=True, index=True)
-    pedido_id = Column(Integer, ForeignKey('pedidos.id'), unique=True) # Clave única
+    pedido_id = Column(Integer, ForeignKey('pedidos.id'), unique=True)
     estado = Column(SAEnum(EstadoSeguimiento), default=EstadoSeguimiento.en_camino)
     hora_estimada_llegada = Column(String, nullable=True)
     repartidor_asignado = Column(String, nullable=True)
@@ -114,24 +140,97 @@ class DocumentoDB(Base):
     rut = Column(String, nullable=True)
     razon_social = Column(String, nullable=True)
     
-    pedido = relationship("PedidoDB", back_populates="documento")
+    pedido = relationship("PedidoDB", back_populates="documento", foreign_keys=[pedido_id])
 
 
-# --- 2. SCHEMAS (DTOs de Pydantic) ---
-# (Estos son los que ya tenías, como UsuarioCreate, ProductoCreate, etc.)
-# ... (UsuarioCreate, DatosPersonalesUpdate, SuscripcionInput, CambioContraseñaInput, RolUpdate) ...
-# ... (ProductoCreate, ProductoUpdate) ...
-# ... (PedidoItemInput, PedidoCreateInput) ...
-# ... (EnviarNotificacionInput, ActualizarNotificacionInput) ...
-# ... (ConfirmarEntregaInput, FacturaInput) ...
-# ... (DashboardVentas, DashboardPedidoActivo) ...
+# --- 3. SCHEMAS (DTOs de Pydantic) ---
 
-# (¡Importante!) Tenemos que crear Schemas para DEVOLVER datos desde la BBDD
-# (Estos reemplazan a las clases Pydantic 'Usuario', 'Producto', etc. que teníamos)
+class UsuarioCreate(BaseModel):
+    email: str
+    contraseña: str
 
+class DatosPersonalesUpdate(BaseModel):
+    nombre: str
+    direccion: str
+    comuna: str
+    telefono: str
+
+class SuscripcionInput(BaseModel):
+    recibirPromos: bool
+
+class CambioContraseñaInput(BaseModel):
+    contraseña_actual: str
+    nueva_contraseña: str
+
+class RolUpdate(BaseModel):
+    nuevo_rol: Roles
+
+class ProductoBase(BaseModel):
+    nombre: str
+    descripcion: Optional[str] = None
+    precio: float
+    tipo: str
+    stock: int
+    
+class ProductoCreate(ProductoBase):
+    pass
+
+class ProductoUpdate(BaseModel):
+    nombre: Optional[str] = None
+    descripcion: Optional[str] = None
+    precio: Optional[float] = None
+    tipo: Optional[str] = None
+    stock: Optional[int] = None
+    activo: Optional[bool] = None
+
+class PedidoItemInput(BaseModel):
+    producto_id: int
+    cantidad: int
+
+class PedidoCreateInput(BaseModel):
+    items: List[PedidoItemInput]
+
+class EnviarNotificacionInput(BaseModel):
+    pedido_id: int
+    tipo: TipoNotificacion
+    mensaje_opcional: Optional[str] = None
+
+class ActualizarNotificacionInput(BaseModel):
+    mensaje_nuevo: str
+    nueva_hora_estimada: Optional[time] = None
+
+class Ubicacion(BaseModel):
+    lat: float
+    lng: float
+
+class ConfirmarEntregaInput(BaseModel):
+    confirmacion_texto: str = "Entregado OK" 
+
+class FacturaInput(BaseModel):
+    rut: str
+    razon_social: str
+
+class VentasPorHora(BaseModel):
+    hora: int
+    total: float
+
+class DashboardVentas(BaseModel):
+    total_acumulado: float
+    ticket_promedio: float
+    top_productos: List[str]
+    ventas_por_hora: List[VentasPorHora]
+
+class DashboardPedidoActivo(BaseModel):
+    id: str
+    cliente: str
+    estado: str
+    tiempo_estimado: str
+    encargado: str
+
+# (Schemas para SALIDA de datos - con orm_mode)
 class ConfigORM:
-    orm_mode = True # FastAPI 0.x / Pydantic 1.x
-    # from_attributes = True # Pydantic 2.x
+    orm_mode = True 
+    # from_attributes = True # (Si usas Pydantic 2.x)
 
 class UsuarioSchema(BaseModel):
     id: int
@@ -150,21 +249,13 @@ class ProductoSchema(ProductoBase):
     activo: bool
     class Config(ConfigORM): pass
 
-class PedidoItemSchema(BaseModel):
-    producto_id: int
-    cantidad: int
-    precio_en_el_momento: float
-    class Config(ConfigORM): pass
-
 class PedidoSchema(BaseModel):
     id: int
     usuario_id: int
-    # items: List[PedidoItemSchema] # (Relación compleja, la omitimos en respuesta por simplicidad)
     total: float
     estado: EstadoPedido
     fecha_creacion: datetime
-    seguimiento_id: Optional[str] = None
-    documento_id: Optional[int] = None
+    
     class Config(ConfigORM): pass
 
 class SeguimientoSchema(BaseModel):
@@ -194,8 +285,7 @@ class DocumentoSchema(BaseModel):
     razon_social: Optional[str] = None
     class Config(ConfigORM): pass
 
-# --- 3. CONFIGURACIÓN DE SEGURIDAD ---
-# (Sin cambios)
+# --- 4. CONFIGURACIÓN DE SEGURIDAD ---
 SECRET_KEY = "tu-clave-secreta-super-dificil-de-adivinar"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -203,33 +293,29 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-# --- 4. FUNCIONES HELPER DE SEGURIDAD ---
-# (Sin cambios)
+# --- 5. FUNCIONES HELPER DE SEGURIDAD ---
 def verificar_contraseña(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
+
 def hashear_contraseña(password: str) -> str:
     return pwd_context.hash(password)
+
 def crear_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    #... (lógica de creación de token)
     to_encode = data.copy()
     if expires_delta: expire = datetime.now(timezone.utc) + expires_delta
     else: expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# --- 5. "BASE DE DATOS" ---
-# (¡BORRAMOS TODAS LAS LISTAS 'db_...'!)
 
 # --- 6. FUNCIONES DE AUTENTICACIÓN Y BBDD ---
 def get_db():
-    """Esta es la nueva 'Dependencia' de Sesión de BBDD"""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-# (¡REFACTORIZAMOS TODOS LOS GETTERS!)
 def get_usuario_by_email(db: Session, email: str) -> Optional[UsuarioDB]:
     return db.query(UsuarioDB).filter(UsuarioDB.email == email).first()
 
@@ -262,7 +348,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         if email is None: raise credentials_exception
     except JWTError:
         raise credentials_exception
-    usuario = get_usuario_by_email(db, email) # <-- Pasa 'db'
+    usuario = get_usuario_by_email(db, email) 
     if usuario is None: raise credentials_exception
     return usuario
 
@@ -275,6 +361,7 @@ async def get_current_repartidor_user(current_user: UsuarioDB = Depends(get_curr
     if current_user.rol != Roles.repartidor:
         raise HTTPException(status_code=403, detail="Acción solo para repartidores")
     return current_user
+
 
 # --- 7. CREA LA APP ---
 app = FastAPI(
@@ -291,7 +378,7 @@ Base.metadata.create_all(bind=engine)
 def leer_root(): return {"mensaje": "¡Bienvenido a la API de Chocomanía!"}
 
 
-# --- ENDPOINTS DE USUARIO Y AUTENTICACIÓN (REFACTORIZADOS) ---
+# --- ENDPOINTS DE USUARIO Y AUTENTICACIÓN ---
 
 @app.post("/usuarios/registrar", response_model=UsuarioSchema, status_code=201)
 def registrar_usuario(usuario_input: UsuarioCreate, db: Session = Depends(get_db)):
@@ -301,7 +388,6 @@ def registrar_usuario(usuario_input: UsuarioCreate, db: Session = Depends(get_db
     hashed_password = hashear_contraseña(usuario_input.contraseña)
     
     rol_asignado = Roles.cliente
-    # Contamos si es el primer usuario para hacerlo admin
     user_count = db.query(UsuarioDB).count()
     if user_count == 0:
         rol_asignado = Roles.administrador
@@ -317,14 +403,14 @@ def registrar_usuario(usuario_input: UsuarioCreate, db: Session = Depends(get_db
     db.refresh(nuevo_usuario_db)
     return nuevo_usuario_db
 
-@app.post("/token")
+@app.post("/token", response_model=dict)
 def login_para_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ):
     usuario = autenticar_usuario(db, form_data.username, form_data.password)
     if not usuario:
-        raise HTTPException(status_code=401, detail="Email o contraseña incorrecta")
+        raise HTTPException(status_code=401, detail="Email o contraseña incorrecta", headers={"WWW-Authenticate": "Bearer"})
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = crear_access_token(data={"sub": usuario.email}, expires_delta=access_token_expires)
@@ -388,7 +474,7 @@ def gestionar_suscripcion(
     db.refresh(current_user)
     return current_user
 
-# --- ENDPOINTS DE CATÁLOGO (Productos) (REFACTORIZADOS) ---
+# --- ENDPOINTS DE CATÁLOGO (Productos) ---
 
 @app.post("/productos/", response_model=ProductoSchema, status_code=201)
 def crear_producto(
@@ -410,7 +496,7 @@ def leer_productos(tipo: Optional[str] = None, db: Session = Depends(get_db)):
     query = db.query(ProductoDB).filter(ProductoDB.activo == True)
     
     if tipo:
-        query = query.filter(ProductoDB.tipo.ilike(f"%{tipo}%")) # .ilike es case-insensitive
+        query = query.filter(ProductoDB.tipo.ilike(f"%{tipo}%")) 
         
     return query.all()
 
@@ -433,7 +519,7 @@ def actualizar_producto(
     db.refresh(producto)
     return producto
 
-# --- ENDPOINTS DE PAGO Y PEDIDOS (REFACTORIZADOS) ---
+# --- ENDPOINTS DE PAGO Y PEDIDOS ---
 
 @app.post("/pedidos/crear-pago", response_model=dict)
 def crear_pedido_y_pago(
@@ -442,28 +528,25 @@ def crear_pedido_y_pago(
     db: Session = Depends(get_db)
 ):
     total_calculado = 0.0
-    productos_del_pedido = []
-
+    
     for item in pedido_input.items:
         producto = get_producto_by_id(db, item.producto_id)
         if not producto or not producto.activo or producto.stock < item.cantidad:
              raise HTTPException(status_code=400, detail=f"Problema con producto ID {item.producto_id}")
         
-        # (Aquí faltaría la lógica de la tabla 'pedido_items_tabla', 
-        # es complejo para este refactor, lo simularemos)
         total_calculado += producto.precio * item.cantidad
         
     nuevo_pedido_db = PedidoDB(
         usuario_id=current_user.id,
         total=total_calculado,
-        estado=EstadoPedido.pendiente_de_pago,
-        seguimiento_id=str(random.randint(1000, 9999)) # Simulación de ID
+        estado=EstadoPedido.pendiente_de_pago
+        # ¡CORREGIDO! Se borró la línea 'seguimiento_id=...'
     )
     db.add(nuevo_pedido_db)
     db.commit()
     db.refresh(nuevo_pedido_db)
     
-    # (Aquí faltaría asociar los productos al pedido en la BBDD)
+    # (Faltaría la lógica de la tabla 'pedido_items_tabla' para asociar productos)
     
     return {"redirect_url": f"https://simulador-webpay.cl/pay?token={nuevo_pedido_db.id}"}
 
@@ -480,8 +563,8 @@ def solicitar_factura(
     if pedido.estado != EstadoPedido.pendiente_de_pago:
         raise HTTPException(status_code=400, detail="Solo se puede solicitar factura antes del pago")
 
-    # (Simulación)
     print(f"Pedido {pedido_id} marcado para Factura con RUT {factura_input.rut}")
+    # (En una app real, guardarías 'factura_input' en el pedido para usarlo post-pago)
     return {"mensaje": "Datos de facturación recibidos. Se generará al aprobar el pago."}
 
 @app.get("/pagos/confirmacion", response_model=dict)
@@ -491,18 +574,16 @@ def confirmar_pago_simulado(token: int, simul_status: str, db: Session = Depends
         raise HTTPException(status_code=404, detail="Pedido no válido o ya procesado")
 
     if simul_status == "aprobado":
-        pedido.estado = EstadoPedido.en_preparacion # Cambiado de 'pagado' a 'en_preparacion'
+        pedido.estado = EstadoPedido.en_preparacion 
         print(f"Pedido {pedido.id} ahora en preparación.")
         
-        # (B-13/14) Trigger de Documento
         nuevo_doc = DocumentoDB(
             pedido_id=pedido.id,
-            tipo=TipoDocumento.boleta, # (Simulamos boleta)
+            tipo=TipoDocumento.boleta, 
             total=pedido.total
         )
         db.add(nuevo_doc)
         
-        # (B-16) Trigger de Seguimiento
         nuevo_seguimiento = SeguimientoDB(
             pedido_id=pedido.id,
             estado=EstadoSeguimiento.en_camino,
@@ -510,7 +591,6 @@ def confirmar_pago_simulado(token: int, simul_status: str, db: Session = Depends
         )
         db.add(nuevo_seguimiento)
         
-        # (B-15) Trigger de Notificación
         enviar_notificacion_interna(
              db,
              EnviarNotificacionInput(pedido_id=pedido.id, tipo=TipoNotificacion.pedido_despachado)
@@ -541,7 +621,7 @@ def cancelar_pedido(
     return pedido
 
 
-# --- ENDPOINTS DE REPORTES (REFACTORIZADOS) ---
+# --- ENDPOINTS DE REPORTES (CORREGIDO CON 'func.date') ---
 
 @app.get("/reportes/ventas")
 def generar_reporte_ventas(
@@ -558,10 +638,12 @@ def generar_reporte_ventas(
         EstadoPedido.entregado
     ]
     
+    # ¡CORRECCIÓN DE ZONA HORARIA!
+    # Comparamos la PARTE DE FECHA de la BBDD (UTC) con las fechas de entrada
     pedidos_pagados = db.query(PedidoDB).filter(
         PedidoDB.estado.in_(estados_de_venta),
-        PedidoDB.fecha_creacion >= fecha_inicio,
-        PedidoDB.fecha_creacion <= fecha_fin
+        func.date(PedidoDB.fecha_creacion) >= fecha_inicio,
+        func.date(PedidoDB.fecha_creacion) <= fecha_fin
     ).all()
 
     if not pedidos_pagados:
@@ -582,7 +664,6 @@ def generar_reporte_ventas(
     if formato == "json":
         return reporte_data
     elif formato == "excel" or formato == "pdf":
-        # ... (Lógica de StreamingResponse, sin cambios)
         output = io.StringIO()
         output.write("id,fecha,total\n")
         for p in detalle_pedidos: output.write(f"{p['id']},{p['fecha']},{p['total']}\n")
@@ -595,7 +676,7 @@ def generar_reporte_ventas(
         )
     return HTTPException(status_code=400, detail="Formato no soportado")
 
-# --- ENDPOINTS DE DASHBOARD (REFACTORIZADOS) ---
+# --- ENDPOINTS DE DASHBOARD (CORREGIDO CON 'func.date') ---
 
 @app.get("/dashboard/ventas", response_model=DashboardVentas)
 def get_dashboard_ventas(
@@ -604,10 +685,11 @@ def get_dashboard_ventas(
     db: Session = Depends(get_db)
 ):
     estados_de_venta = [EstadoPedido.pagado, EstadoPedido.en_preparacion, EstadoPedido.despachado, EstadoPedido.entregado]
+    
+    # ¡CORRECCIÓN DE ZONA HORARIA!
     pedidos_del_dia = db.query(PedidoDB).filter(
         PedidoDB.estado.in_(estados_de_venta),
-        PedidoDB.fecha_creacion >= fecha,
-        PedidoDB.fecha_creacion < (fecha + timedelta(days=1))
+        func.date(PedidoDB.fecha_creacion) == fecha
     ).all()
     
     if not pedidos_del_dia:
@@ -616,7 +698,6 @@ def get_dashboard_ventas(
     total_acumulado = sum(p.total for p in pedidos_del_dia)
     ticket_promedio = total_acumulado / len(pedidos_del_dia)
     
-    # Simulación simple
     top_productos_simulado = ["Bombones Finos (BBDD)", "Tableta Amarga (BBDD)"]
     ventas_por_hora_simulado = [VentasPorHora(hora=h, total=round(random.uniform(5000, 20000), 0)) for h in range(9, 18)]
     
@@ -634,10 +715,11 @@ def get_dashboard_pedidos_activos(
     db: Session = Depends(get_db)
 ):
     estados_activos = [EstadoPedido.en_preparacion, EstadoPedido.despachado]
+
+    # ¡CORRECCIÓN DE ZONA HORARIA!
     pedidos_activos = db.query(PedidoDB).filter(
         PedidoDB.estado.in_(estados_activos),
-        PedidoDB.fecha_creacion >= fecha,
-        PedidoDB.fecha_creacion < (fecha + timedelta(days=1))
+        func.date(PedidoDB.fecha_creacion) == fecha
     ).all()
     
     dashboard_list = []
@@ -653,19 +735,19 @@ def get_dashboard_pedidos_activos(
     return dashboard_list
 
 
-# --- ENDPOINTS DE NOTIFICACIONES (REFACTORIZADOS) ---
+# --- ENDPOINTS DE NOTIFICACIONES ---
 
 def enviar_notificacion_interna(db: Session, notificacion_input: EnviarNotificacionInput):
     pedido = get_pedido_by_id(db, notificacion_input.pedido_id)
     if not pedido: return 
     
     mensaje = f"Tu pedido {pedido.id} "
-    hora_estimada = None
+    hora_estimada_str = None
     if notificacion_input.tipo == TipoNotificacion.pedido_despachado:
         seguimiento = get_seguimiento_by_pedido_id(db, pedido.id)
         if seguimiento and seguimiento.hora_estimada_llegada:
-             hora_estimada = seguimiento.hora_estimada_llegada
-             mensaje += f"ha sido despachado. Llegada estimada: {hora_estimada}."
+             hora_estimada_str = seguimiento.hora_estimada_llegada
+             mensaje += f"ha sido despachado. Llegada estimada: {hora_estimada_str}."
         else:
              mensaje += "ha sido despachado."
     elif notificacion_input.tipo == TipoNotificacion.retraso_entrega:
@@ -675,11 +757,9 @@ def enviar_notificacion_interna(db: Session, notificacion_input: EnviarNotificac
         pedido_id=pedido.id,
         tipo=notificacion_input.tipo,
         mensaje=mensaje,
-        hora_estimada=hora_estimada
+        hora_estimada=hora_estimada_str
     )
     db.add(nueva_notificacion_db)
-    db.commit()
-    db.refresh(nueva_notificacion_db)
     print(f"NOTIFICACION (Simulada) para Pedido {pedido.id}: {mensaje}")
     return nueva_notificacion_db
 
@@ -691,6 +771,8 @@ def enviar_notificacion_endpoint(
     notificacion = enviar_notificacion_interna(db, notificacion_input)
     if not notificacion:
          raise HTTPException(status_code=404, detail="Pedido no encontrado para notificar")
+    db.commit() # Commit aquí
+    db.refresh(notificacion)
     return notificacion
 
 @app.put("/notificaciones/pedido/{pedido_id}/actualizar", response_model=NotificacionSchema)
@@ -714,7 +796,7 @@ def actualizar_notificacion_endpoint(
     return ultima_notificacion
 
 
-# --- ENDPOINTS DE SEGUIMIENTO (REFACTORIZADOS) ---
+# --- ENDPOINTS DE SEGUIMIENTO ---
 
 @app.get("/seguimiento/{pedido_id}", response_model=SeguimientoSchema)
 def obtener_seguimiento_cliente(
